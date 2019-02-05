@@ -1,0 +1,82 @@
+<!-- Copyright (c) 2011, Kim van Wyk  -->
+<!-- All rights reserved.   -->
+
+<!-- Redistribution and use in source and binary forms, with or without -->
+<!-- modification, are permitted provided that the following conditions are -->
+<!-- met: -->
+
+<!-- Redistributions of source code must retain the above copyright -->
+<!-- notice, this list of conditions and the following disclaimer.  -->
+<!-- Redistributions in binary form must reproduce the above copyright -->
+<!-- notice, this list of conditions and the following disclaimer in the -->
+<!-- documentation and/or other materials provided with the distribution. -->
+
+<!-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS -->
+<!-- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT -->
+<!-- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR -->
+<!-- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT -->
+<!-- HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, -->
+<!-- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT -->
+<!-- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
+<!-- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY -->
+<!-- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT -->
+<!-- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE -->
+<!-- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. -->
+
+<head>
+  <title>Edit {{ name }} office holder</title>
+</head>
+<body>
+<form id="form" action="/struct/{{office_type}}s/{{year}}/{{struct_id}}/{% if office_id %}{{office_id}}{% else %}add{% endif %}/" method="post">
+<table>
+  {% if title %}
+  <tr>
+    <td>Title</td>
+    <td>:</td>
+    <td>{{title}}
+  </tr>
+  {%else%}
+  <tr>
+    {% if form.office %}
+       <td>{{form.office.label}}</td>
+       <td>:</td>
+       <td>{{form.office}}</td>
+    {%endif%}
+  </tr>
+  {%endif%}
+  <tr>
+    <td>{{form.member.label}}</td>
+    <td>:</td>
+    <td>  {{ initform.init }} {{form.member}}</td>
+  </tr>
+  <tr>
+    <td>{{form.email.label}}</td>
+    <td>:</td>
+    <td>{{form.email}}</td>
+  </tr>
+  <tr>
+    {% if form.committee_members %}
+       <td>{{form.committee_members.label}}</td>
+       <td>:</td>
+       <td>{{form.committee_members}}</td>
+    {%endif%}
+  </tr>
+</table>
+
+{% for field in forms %}
+{{field.errors}}
+{%endfor%}
+<!-- The email field is for an email address specifically for this office. Leave this blank if the member uses their own email address for this office. The email address set for the member (at XX) will be used if this is blank.</td> -->
+<input type="submit" value="Save"/>
+</form>
+
+<a href="/struct/{{office_type}}s/{{year}}/{{struct_id}}/">Cancel</a>
+
+<script type="text/javascript">
+function form_initial_submit()
+  {
+x = document.getElementById("form");
+x.submit();
+  }
+</script>
+</body>

@@ -1,0 +1,71 @@
+<!-- Copyright (c) 2011, Kim van Wyk  -->
+<!-- All rights reserved.   -->
+
+<!-- Redistribution and use in source and binary forms, with or without -->
+<!-- modification, are permitted provided that the following conditions are -->
+<!-- met: -->
+
+<!-- Redistributions of source code must retain the above copyright -->
+<!-- notice, this list of conditions and the following disclaimer.  -->
+<!-- Redistributions in binary form must reproduce the above copyright -->
+<!-- notice, this list of conditions and the following disclaimer in the -->
+<!-- documentation and/or other materials provided with the distribution. -->
+
+<!-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS -->
+<!-- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT -->
+<!-- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR -->
+<!-- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT -->
+<!-- HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, -->
+<!-- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT -->
+<!-- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
+<!-- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY -->
+<!-- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT -->
+<!-- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE -->
+<!-- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. -->
+
+<head>
+  <title>
+    Edit officers for {{ name }}
+  </title>
+</head>
+<body>
+<form action="/club/officers/{{year}}/{{id}}/" method="post">
+  <table>
+    <tr>
+      <td>Office</td>
+      <td>Member</td>
+      <td>Email</td>
+      <td>Address 1</td>
+      <td>Address 2</td>
+      <td>Address 3</td>
+      <td>Address 4</td>
+      <td>Postal Code</td>
+      <td>Club Phone</td>
+      <td>Club Fax</td>
+    </tr>
+    {% for form in form_list %}
+    <tr>
+         <td>{{ form.office }}</td>
+        {% for field in form %}
+        <td>{{ field }}</td>
+         {% endfor %}
+    </tr>
+    <tr>
+        <td></td>
+        {% for field in form %}
+        <td>{{ field.error }}</td>
+         {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  <p>
+    The Email and Address fields are to allow a different email address and/or postal address to be specified for the particular club office. So for example, a member may receive mail related to the secretary's position at the club's PO Box. If that address is used here, the club's address will be listed for the secretary when they appear in the directory. This will override the address set for the member themself. Their own address will still be used for other positions they hold, such as a DC for example.
+  <p>
+    Similar, if the treasurer uses an email address specific to club treasurer related items, that address can be set here and it will be printed in the directory in the appropriate place for the club treasurer, instead of the members email address as set for the member themselves. Their own email address will still be used for other positions they may hold, such as a DC, unless it is overriden there too.
+<p>
+<input type="submit" value="Submit" />
+</form>
+
+<br>
+<a href="/">Main Menu</a>
+</body>

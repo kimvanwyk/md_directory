@@ -1,0 +1,78 @@
+<!-- Copyright (c) 2011, Kim van Wyk  -->
+<!-- All rights reserved.   -->
+
+<!-- Redistribution and use in source and binary forms, with or without -->
+<!-- modification, are permitted provided that the following conditions are -->
+<!-- met: -->
+
+<!-- Redistributions of source code must retain the above copyright -->
+<!-- notice, this list of conditions and the following disclaimer.  -->
+<!-- Redistributions in binary form must reproduce the above copyright -->
+<!-- notice, this list of conditions and the following disclaimer in the -->
+<!-- documentation and/or other materials provided with the distribution. -->
+
+<!-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS -->
+<!-- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT -->
+<!-- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR -->
+<!-- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT -->
+<!-- HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, -->
+<!-- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT -->
+<!-- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, -->
+<!-- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY -->
+<!-- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT -->
+<!-- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE -->
+<!-- OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. -->
+
+<head>
+  <title>MD Directory System</title>
+</head>
+<!-- <body style="background-image:url(/media/lionsemblem_clr.png)"> -->
+<body image="/media/lionsemblem_clr.png">
+
+<!-- Insert blurb -->
+{% if blurb %}
+{{blurb}}
+<br>
+{% endif %}
+
+{% if table %}
+<br>
+<table>
+{% for t in table %}
+<tr>
+  <td>{{t.0}}</td>
+  <td> : </td>
+  <td>{{t.1}}</td>
+  <td> ==&gt </td>
+  <td>{{t.2}}</td>
+{% endfor %}
+<table>
+<br>
+<hr>
+<br>
+{% endif %}
+
+{% if blurb or table %}
+<br>
+<hr>
+<br>
+{% endif %}
+<a href="/member/">Find a member to edit their details</a><br>
+<a href="/member/add">Add a member to the system</a><br>
+<a href="/club/">Find a club to edit its address, contact and meeting details</a><br>
+<a href="/club/add">Add a club to the system</a><br>
+<a href="/club/officers/">Find a club to edit its officers for a given Lionistic year</a><br>
+<a href="/zone/">Find a zone to edit its details</a><br>
+<a href="/zone/chair/">Find a zone to edit its chairperson for a given Lionistic year</a><br>
+<a href="/struct/zonelist/">Find a district to edit which zone each club in the district belongs to</a><br>
+<a href="/region/">Find a region to edit its details</a><br>
+<a href="/region/chair/">Find a region to edit its chairperson for a given Lionistic year</a><br>
+<a href="/struct/regionlist/">Find a district to edit which region each club in the district belongs to</a><br>
+<a href="/dist_office/">Find a district office to edit its details</a><br>
+<a href="/brightsight/">Find a Lions Operation Brightsight Office to edit its details</a><br>
+<a href="/merch_centre/">Find a merchandise centre to edit its details</a><br>
+<a href="/struct/">Find a district or MD to edit its details</a><br>
+<a href="/struct/officers/">Find a district or MD to edit its DG, 1VDG, 2VDG (or CC and CCE),  secretary and treasurer for a given Lionistic year</a><br>
+<a href="/struct/chairs/">Find a district or MD to edit its cabinet or council chairpersons for a given Lionistic year</a><br>
+<a href="/struct/mentors/">Find a district or MD to edit its mentor Lions for a given Lionistic year</a><br>
+</body>
