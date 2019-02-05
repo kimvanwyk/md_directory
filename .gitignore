@@ -102,3 +102,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+/common_modules/award_attendees_2011.py
