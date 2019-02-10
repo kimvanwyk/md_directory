@@ -221,10 +221,11 @@ def get_struct_officers(offices, struct_id):
         out.append(o)
     return out
 
-def get_past_struct_officers(office, struct_id, other_structs=False, year=None):
+def get_past_struct_officers(office, struct_id, other_structs=False, prev_structs=False, year=None):
     ''' Return a dict of 
     {'local': (year served, end month, member dict, struct name) for members who served in the specified struct
      'other':  (year served, end month, member dict, struct name) for members who served in other structs
+     'prev':  (year served, end month, member dict, struct name) for members who served in pre-merged structs
      if not 'other_strucs', the 'other' key is []
     for everyone who held 'office' for the struct before 'year'. Return [] if no matches
     '''
@@ -235,15 +236,25 @@ def get_past_struct_officers(office, struct_id, other_structs=False, year=None):
 
     # A list of Q objects to filter on, the key to store them in
     items = [((Q(struct__id=struct_id),), 'local')]
+
+    if prev_structs:
+        prev_structs = [sm.previous_struct for sm in models.StructMerge.objects.filter(current_struct=struct_id)]
+        items.append(((Q(struct__in=prev_structs),), 'prev'))
+    else:
+        prev_structs = []
+        out['prev'] = []
+
     if other_structs:
-        items.append(((~Q(struct__id=struct_id),Q(member__club__struct=local_struct)), 'other'))
+        items.append(([~Q(struct__id=struct_id),Q(member__club__struct=local_struct)], 'other'))
+        if prev_structs:
+            items[-1][0].append(~Q(struct__in=prev_structs))
     else:
         out['other'] = []
 
     for qs, key in items:
         l = []
         offs = models.StructOfficer.objects.filter(*qs).filter(year__lt=year)
-        offs = offs.filter(office__title=office).order_by('year', 'end_month')
+        offs = offs.filter(office__title=office).order_by('year', 'end_month', 'struct__name')
         for off in offs:
             l.append((off.year, off.end_month, off.member and get_member_data(off.member.id, {'email':off.email} if off.email else {}), off.struct.__unicode__()))
         out[key] = l
@@ -489,13 +500,20 @@ if __name__ == "__main__":
 
      # print get_md_details()
 
-#    print get_past_struct_officers('District Governor', 4, True)['other']
+    for loc in ('prev',):
+        #print get_past_struct_officers('District Governor', 3, True)[loc]
+        # print [l for l in get_past_struct_officers('District Governor', 3, True)[loc]]
+        print loc
+        print '\n'.join(['%s: %s' % (o[2]['name'], o[-1]) for o in get_past_struct_officers('District Governor', 9, True, True)[loc]])
+        print
 
-    offs = [('Club President', 2012), ('Club Secretary', 2012)]
-    for i in (27774, 35673):
-        d = get_club_info(i, )
-        print d['name']
-        for (o,t) in zip(d['officers'], offs):
-            print t
-            print o['name']
+    # for sm in models.StructMerge.objects.filter(current_struct=9):
+    #     print sm.previous_struct
+    # offs = [('Club President', 2012), ('Club Secretary', 2012)]
+    # for i in (27774, 35673):
+    #     d = get_club_info(i, )
+    #     print d['name']
+    #     for (o,t) in zip(d['officers'], offs):
+    #         print t
+    #         print o['name']
             

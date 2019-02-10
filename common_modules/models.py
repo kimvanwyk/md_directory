@@ -80,6 +80,28 @@ class Struct(models.Model):
         n = '%s %s%s' % (self.type.type, i, self.name)            
         return n
 
+class Struct(models.Model):
+    name = models.CharField('Structure Name', max_length=100)    
+    parent = models.ForeignKey('self', null=True, blank=True, 
+                               help_text = 'Set to name of parent Multiple District. Leave blank if this is already a Multiple District')
+    website = models.URLField(blank=True)
+    type = models.ForeignKey(StructType, verbose_name="Type of district", null=True, blank=True)
+
+    class Meta:
+        app_label = 'md_directory'
+        ordering = ['id']
+
+    def __unicode__(self):
+        if self.parent_id:
+            try:
+                i = self.parent.name
+            except:
+                i = ''
+        else:
+            i = ''
+        n = '%s %s%s' % (self.type.type, i, self.name)            
+        return n
+
 class Region(models.Model):
     ''' Represent a region
     '''
@@ -345,6 +367,13 @@ class StructChair(models.Model):
 
     def __unicode__(self):
         return self.member_id
+
+class StructMerge(models.Model):
+    previous_struct = models.ForeignKey(Struct)
+    current_struct = models.ForeignKey(Struct)
+
+    class Meta:
+        app_label = 'md_directory'
 
 class RegionChair(models.Model):
     ''' Chairs of regions

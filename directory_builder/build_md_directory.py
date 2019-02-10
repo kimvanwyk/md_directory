@@ -366,7 +366,7 @@ def get_title(off_id):
         ip = True
     return (off_id, title[0], ip)
     
-def get_past_officer_latex(office, deceased, offs, in_district):
+def get_past_officer_latex(office, deceased, offs, in_district, prev_district=False):
     ''' Generate the latex for a list of past officers in 'offs' for the office title of 'office'.
     'in_district' governs whether to add a title text that these are officers from outside the district
 
@@ -400,7 +400,7 @@ def get_past_officer_latex(office, deceased, offs, in_district):
             col = [r'\textbf{%d/%d}' % (y, y+num_years), 
                    '%s' % (((month < 12) or (beg > 1)) and '(%s to %s)' 
                            % (MONTHS[beg][:3], MONTHS[month][:3]) or '')]
-            if in_district:
+            if in_district or prev_district:
                 col.extend(['Served in:', '%s' % struct_name])
             # add member to table. 
             ret.extend(make_latex_table([col, make_member_col_db_handler(member_dict)]))
@@ -418,9 +418,9 @@ def get_past_officers(office, struct_id, other_districts, footnote=False):
     'other_districts' governs whether to include a list of officers from other districts
     '''
     ret = []
-    offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, year=cur_year)
+    offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, prev_structs=True, year=cur_year)
     deceased = False
-    deceased, text = get_past_officer_latex(office, deceased, offs['local'], False)
+    deceased, text = get_past_officer_latex(office, deceased, offs['prev'], False, True)
     ret.extend(text)
 
     if other_districts and offs['other']:
