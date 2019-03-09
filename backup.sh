@@ -4,8 +4,10 @@ docker exec compose_mysql_1 sh -c 'exec mysqldump --add-drop-database -uroot -pw
 echo dumping db structure
 docker exec compose_mysql_1 sh -c 'exec mysqldump --add-drop-database -d -uroot -pwortel -B md_directory -P3307' > db_structure_mddir.sql
 echo committing public repo
-hg commit --message "$1"
+git commit --message "$1"
+git push
 cd ../md_directory_full_data/
 echo committing private repo
-hg commit --message "$1"
+git commit --message "$1"
+git push
 cd ../md_directory

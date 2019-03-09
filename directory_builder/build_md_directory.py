@@ -380,13 +380,6 @@ def get_past_officer_latex(office, deceased, offs, in_district, prev_district=Fa
         num_years = 1
 
     if offs:
-        if not in_district:
-            # only officers of the current district start new 2-col headings
-            ret.append('')
-            ret.append(r'\setlength{\columnseprule}{2pt}')
-            ret.append(r'\begin{multicols}{2}[\section{Past %ss}]' % office)
-        else:
-            ret.append(r'\section{Past %ss from other Districts}' % office)
         # beg tracks the starting month of the term in office, only useful if one person didn't serve the whole term
         beg = 1
     # Return a list of (year served, end month, member dict)
@@ -410,7 +403,7 @@ def get_past_officer_latex(office, deceased, offs, in_district, prev_district=Fa
                 beg = 1
     return (deceased, ret)
 
-def get_past_officers(office, struct_id, other_districts, footnote=False):
+def get_past_officers(office, struct_id, other_districts, footnote=False, prev_structs=False):
     ''' Return a tuple of (.tex list of details of past officers, Bool of whether the called to higher service footnote has been printed)
     The .tex list is based on 'office', the name of the office from the office titles table,
     for the given struct id
@@ -418,13 +411,21 @@ def get_past_officers(office, struct_id, other_districts, footnote=False):
     'other_districts' governs whether to include a list of officers from other districts
     '''
     ret = []
-    offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, prev_structs=True, year=cur_year)
+    ret.append('')
+    ret.append(r'\setlength{\columnseprule}{2pt}')
+    ret.append(r'\begin{multicols}{2}[\section{Past %ss}]' % office)
+
+    offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, prev_structs=prev_structs, year=cur_year)
     deceased = False
-    deceased, text = get_past_officer_latex(office, deceased, offs['prev'], False, True)
+    deceased, text = get_past_officer_latex(office, deceased, offs['local'], in_district=False, prev_district=False)
     ret.extend(text)
+    if prev_structs and offs['prev']:
+        deceased, text = get_past_officer_latex(office, deceased, offs['prev'], in_district=False, prev_district=True)
+        ret.extend(text)
 
     if other_districts and offs['other']:
-        deceased, text = get_past_officer_latex(office, deceased, offs['other'], True)
+        ret.append(r'\section{Past %ss from other Districts}' % office)
+        deceased, text = get_past_officer_latex(office, deceased, offs['other'], in_district=True, prev_district=False)
         ret.extend(text)
 
     if ret:
@@ -931,12 +932,12 @@ def build_directory_contents(struct_id, year):
         # Add PCC info
         # council chair is officer ID 11
         # Set not to show officers from other districts
-        tex, footnote = get_past_officers('Council Chairperson', md['id'], False)
+        tex, footnote = get_past_officers('Council Chairperson', md['id'], False, prev_structs=False)
         out.extend(tex)
         # Add ID info, ID 21. Pass in footnote from previous list of past officers
         # use only .tex return from get_past_officers
         # Set not to show officers from other districts
-        out.extend(get_past_officers('International Director', md['id'], False, footnote)[0])
+        out.extend(get_past_officers('International Director', md['id'], False, footnote, prev_structs=False)[0])
         total += out
         # build Latex .tex file, using an article style
         fn = os.path.normpath(os.path.join('build', '%s_%s_directory_md_details_only' % (year_prefix, md['name'].lower().replace(' ', '_'))))
@@ -963,7 +964,7 @@ def build_directory_contents(struct_id, year):
         # Add PDG info
         out.append('')
         # DG is 5
-        out.extend(get_past_officers('District Governor', dist['id'], True)[0])
+        out.extend(get_past_officers('District Governor', dist['id'], True, prev_structs=True)[0])
         total += out
         fn = os.path.normpath(os.path.join('build', '%s_%s_directory' % (year_prefix, name.lower().replace(' ', '_'))))
         files.append(fn)
