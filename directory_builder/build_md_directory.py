@@ -1003,7 +1003,8 @@ class DBHandler(object):
         metadata.bind = engine
         self.conn = engine.connect()
         self.tables = {}
-        table_list = ['md_directory_club', 'md_directory_clubmerge', 'md_directory_clubofficer', 'md_directory_meetings', 
+        table_list = ['md_directory_club', 'md_directory_clubmerge', 'md_directory_clubofficer', 
+                      'md_directory_clubzone', 'md_directory_meetings', 
                       'md_directory_member', 'md_directory_merchcentre', 'md_directory_districtoffice',
                       'md_directory_merlcoordinators', 'md_directory_officertitle', 'md_directory_region', 
                       'md_directory_regionchair', 'md_directory_struct', 'md_directory_structchair', 

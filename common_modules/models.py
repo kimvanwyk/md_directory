@@ -164,6 +164,12 @@ class ClubType(models.Model):
         ordering = ['type']
         app_label = 'md_directory'
 
+class ClubZone(models.Model):
+    id = models.IntegerField(primary_key=True)
+    year = models.IntegerField('Lionistic Year')
+    club = models.ForeignKey(Club, verbose_name="Club")
+    zone = models.ForeignKey(Zone, verbose_name="Zone")
+
 class Meetings(models.Model):
     club = models.ForeignKey(Club)
     day = models.IntegerField('Meeting day', choices=weekdays)
