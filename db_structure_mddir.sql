@@ -317,7 +317,7 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=5772 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=5775 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -610,10 +610,11 @@ CREATE TABLE `md_directory_struct` (
   `website` varchar(200) NOT NULL,
   `type_id` int(11) DEFAULT NULL,
   `parent_id` int(11) DEFAULT NULL,
+  `in_use_b` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `md_directory_struct_777d41c8` (`type_id`),
   KEY `md_directory_struct_63f17a16` (`parent_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -635,6 +636,21 @@ CREATE TABLE `md_directory_structchair` (
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=957 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `md_directory_structmerge`
+--
+
+DROP TABLE IF EXISTS `md_directory_structmerge`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `md_directory_structmerge` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `previous_struct_id` smallint(6) NOT NULL,
+  `current_struct_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -738,4 +754,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-08-20 18:43:25
+-- Dump completed on 2019-03-09 15:44:36
