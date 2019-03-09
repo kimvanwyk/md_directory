@@ -705,15 +705,26 @@ def get_regions_and_zones(struct_id):
     # reset out, to hold zones
     out = []
     # build a dict, keyed by zone with a list of club names in that zone as the value, by looping over each club:
-    t = db.tables['md_directory_club'].c    
-    items = db.conn.execute(select([t.zone_id, t.name, t.type],
-                                   and_(t.struct_id == struct_id, t.closed_b == False)).order_by(t.name)).fetchall()
-
-    for z, name, t in items:
+    t = db.tables['md_directory_club']
+    tm = db.tables['md_directory_clubmerge']
+    clubs = list(db.conn.execute(select([t.c.id, t.c.name, t.c.type, t.c.zone_id],
+                                   and_(t.c.struct_id == struct_id, t.c.closed_b == False))).fetchall())
+    clubs += list(db.conn.execute(select([t.c.id, t.c.name, t.c.type, t.c.zone_id],
+                                         and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id, 
+                                              t.c.closed_b == False))).fetchall())
+    for (cid, name, ctype, zid) in clubs:
+        tc = db.tables['md_directory_clubzone']
+        tz = db.tables['md_directory_zone']
+        res = db.conn.execute(select([tc.c.zone_id], and_(tc.c.club_id == cid, tc.c.year == cur_year,
+                                                          tz.c.id == tc.c.zone_id, tz.c.struct_id == struct_id))).fetchone()
+        if res:
+            zone_id = res[0]
+        else:
+            zone_id = zid
         # add club type if not a regular club
-        if t > 0:
-            name += ' (%s Club)' % CHILD_NAMES[t]
-        zones_dict[z].append(name)
+        if ctype > 0:
+            name += ' (%s Club)' % CHILD_NAMES[ctype]
+        zones_dict[zone_id].append(name)
 
     # Get zone name chair member_id for each zone, ordered by zone name
     t = db.tables['md_directory_zone'].c
@@ -759,8 +770,6 @@ def get_club_info(struct_id):
     # grab a list of all clubs in the struct
     t = db.tables['md_directory_club']
     tm = db.tables['md_directory_clubmerge']
-    # clubs = t.select(and_(or_(t.c.struct_id == struct_id, and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id)),
-    #                       t.c.closed_b == False)).order_by(t.c.name.asc()).execute()
     clubs = list(t.select(and_(t.c.struct_id == struct_id, t.c.closed_b == False)).execute())
     clubs += list(t.select(and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id, 
                                 t.c.closed_b == False)).execute())
@@ -808,8 +817,13 @@ def get_club_info(struct_id):
 
         # Get zone and region info
         zonestr = ''
-        t = db.tables['md_directory_zone']
-        zone = db.conn.execute(select([t], t.c.id == c.zone_id)).fetchone()
+        tc = db.tables['md_directory_clubzone']
+        tz = db.tables['md_directory_zone']
+        zone = db.conn.execute(select([tz], and_(tc.c.zone_id == tz.c.id, tc.c.club_id == c.id, 
+                                                 tc.c.year == cur_year, tz.c.struct_id == struct_id))).fetchone()
+        if not zone:
+            tz = db.tables['md_directory_zone']
+            zone = db.conn.execute(select([tz], and_(tz.c.id == c.zone_id))).fetchone()
         if zone:
             # Check if zone is in a region
             if zone.in_region_b:
@@ -1083,7 +1097,6 @@ def build_directories(db_settings, authors=[], md_name=None, year=None):
         os.mkdir('build')
     shutil.copy2('lionsemblem_clr.png', 'build')
     files = build_directory_contents(md.id, year)
-    print files
     # go to the build directory, creating it if need be
     from pdflatex import build_pdf
     # delete logging file
