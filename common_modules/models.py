@@ -64,6 +64,7 @@ class Struct(models.Model):
                                help_text = 'Set to name of parent Multiple District. Leave blank if this is already a Multiple District')
     website = models.URLField(blank=True)
     type = models.ForeignKey(StructType, verbose_name="Type of district", null=True, blank=True)
+    in_use_b = models.BooleanField('Use this struct?', blank=True)
 
     class Meta:
         app_label = 'md_directory'

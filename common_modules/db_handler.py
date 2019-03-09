@@ -173,7 +173,7 @@ def get_struct_details(struct_id):
         if not HANDLE_EXC: raise
         return None
     out = {}
-    structs = [struct] + [d for d in models.Struct.objects.filter(parent=struct)]
+    structs = [struct] + [d for d in models.Struct.objects.filter(parent=struct) if d.in_use_b]
     for s in structs:
         item = {'id': s.id,
                 'struct': s,
