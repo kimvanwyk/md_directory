@@ -758,7 +758,13 @@ def get_club_info(struct_id):
     ret = []
     # grab a list of all clubs in the struct
     t = db.tables['md_directory_club']
-    clubs = t.select(and_(t.c.struct_id == struct_id, t.c.closed_b == False)).order_by(t.c.name.asc()).execute()
+    tm = db.tables['md_directory_clubmerge']
+    # clubs = t.select(and_(or_(t.c.struct_id == struct_id, and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id)),
+    #                       t.c.closed_b == False)).order_by(t.c.name.asc()).execute()
+    clubs = list(t.select(and_(t.c.struct_id == struct_id, t.c.closed_b == False)).execute())
+    clubs += list(t.select(and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id, 
+                                t.c.closed_b == False)).execute())
+    clubs.sort(key=lambda c: c.name)
     for c in clubs: 
         club_officers = []
         # obtain the correct title id for each club officer and see if a member_id exists for the club's officer
@@ -997,9 +1003,11 @@ class DBHandler(object):
         metadata.bind = engine
         self.conn = engine.connect()
         self.tables = {}
-        table_list = ['md_directory_club', 'md_directory_clubofficer', 'md_directory_meetings', 'md_directory_member', 'md_directory_merchcentre', 'md_directory_districtoffice',
-                      'md_directory_merlcoordinators', 'md_directory_officertitle', 'md_directory_region', 'md_directory_regionchair', 'md_directory_struct', 
-                      'md_directory_structchair', 'md_directory_structofficer', 'md_directory_zone', 'md_directory_zonechair']
+        table_list = ['md_directory_club', 'md_directory_clubmerge', 'md_directory_clubofficer', 'md_directory_meetings', 
+                      'md_directory_member', 'md_directory_merchcentre', 'md_directory_districtoffice',
+                      'md_directory_merlcoordinators', 'md_directory_officertitle', 'md_directory_region', 
+                      'md_directory_regionchair', 'md_directory_struct', 'md_directory_structchair', 
+                      'md_directory_structofficer', 'md_directory_zone', 'md_directory_zonechair']
         for t in table_list:
             self.tables[t] = Table(t, metadata, autoload=True, schema='%s' % schema)
 
