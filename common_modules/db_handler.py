@@ -236,7 +236,7 @@ def get_past_struct_officers(office, struct_id, other_structs=False, year=None):
     # A list of Q objects to filter on, the key to store them in
     items = [((Q(struct__id=struct_id),), 'local')]
     if other_structs:
-        items.append(((~Q(struct__id=struct_id),Q(member__club__struct=local_struct)), 'other'))
+        items.append(((~Q(struct__id=struct_id),Q(member__club__struct=local_struct, member__deceased_b=Fals)e), 'other'))
     else:
         out['other'] = []
 
