@@ -245,7 +245,7 @@ def get_past_struct_officers(office, struct_id, other_structs=False, prev_struct
         out['prev'] = []
 
     if other_structs:
-        items.append(([~Q(struct__id=struct_id),Q(member__club__struct=local_struct)], 'other'))
+        items.append(([~Q(struct__id=struct_id),Q(member__club__struct=local_struct, member__deceased_b=False)], 'other'))
         if prev_structs:
             items[-1][0].append(~Q(struct__in=prev_structs))
     else:
