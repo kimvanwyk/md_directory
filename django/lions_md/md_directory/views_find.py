@@ -162,11 +162,18 @@ def find_s_mc_lobs_do_r_z_c(request, obj, dest=None, use_year=True, item_id=None
             if not item_id:
                 # build a list of (item id, item) for the type of obj being found
                 # determine if object should be filtered by district
+                print 'obj:', obj
                 if p.is_dist:
-                    source = get_model(obj).objects.filter(struct=p.struct)
+                    source = get_model(obj).objects.filter(struct=p.struct).filter(struct__in_use_b=1)
                 else:
-                    source = get_model(obj).objects.all()
-                items = [(s.id, s) for s in source]                    
+                    try:
+                        source = get_model(obj).objects.filter(struct__in_use_b=1)
+                        print 'used struct lookup'
+                    except Exception as e:
+                        print e[0]
+                        source = get_model(obj).objects.all()
+                        print 'no struct lookup'
+                items = [(s.id, s) for s in source]
                 if not items:
                     self.no_entries = True
                 else:

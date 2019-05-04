@@ -428,10 +428,14 @@ def struct_officeholder_edit(request, struct_id, year, office_id=None, office_ty
         return HttpResponse("%s is an invalid struct id" % struct_id)    
     #only limit members if not an md
     from django.db.models import Q
-    if (struct.type_id == 1) or year < (get_current_year()):
-        limit = Q()
-    else:
-        limit = (Q(club__struct=struct_id)|Q(club=None))
+    # Temporary removal to allow all members to be picked, as work-around
+    # for club merging table requiring a more complicated Q field
+    # than the expected short-term life span of this app can justify
+    limit = Q()
+    # if (struct.type_id == 1) or year < (get_current_year()):
+    #     limit = Q()
+    # else:
+    #     limit = (Q(club__struct=struct_id)|Q(club=None))
     # exclude passed away people if current year
     if year == get_current_year():
         limit = limit & Q(deceased_b=False)
@@ -568,7 +572,11 @@ def region_zone_chair_edit(request, id, year, obj):
         i = None
 
     # limit members to those from the item's district
-    limit = {'club__struct': item.struct_id}
+    # Temporarily disabled to allow all members to be displayed -
+    # as with other areas, complicated queries sufficient to handle
+    # merging tables aren't justified by the expected lifespan of this app
+    # limit = {'club__struct': item.struct_id}
+    limit = {}
 
     # generate a drop-down list of initials and a dict to match the selected number against to get the correct initial
     from string import ascii_uppercase

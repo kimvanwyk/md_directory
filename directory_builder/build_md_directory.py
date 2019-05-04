@@ -448,7 +448,9 @@ def get_officers(offices, struct_id):
     t = db.tables['md_directory_struct']
     for o,use_child in offices:
         if use_child:
-            children = db.conn.execute(select([t.c.id, t.c.name], t.c.parent_id == struct_id)).fetchall()
+            children = db.conn.execute(select([t.c.id, t.c.name], 
+                                              and_(t.c.parent_id == struct_id,
+                                                   t.c.in_use_b == 1))).fetchall()
             for c in children:
                 offs.append((o, c[0], ', District %s' % c[1]))
         else:
