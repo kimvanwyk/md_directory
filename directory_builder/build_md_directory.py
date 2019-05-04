@@ -531,7 +531,7 @@ def get_chap_heading(struct, title):
     '''
     name = struct['name']
     # chap is a string, used for chapter totals, for the overall document
-    return r'\chapter{%s %s}' % (title, name)
+    return r'\chapter{%s}' % name
 
 def get_merch_centre(md_id):
     ''' Return .tex content with details of a Merchandise Centre for a given MD id
