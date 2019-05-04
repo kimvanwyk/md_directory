@@ -162,15 +162,17 @@ def find_s_mc_lobs_do_r_z_c(request, obj, dest=None, use_year=True, item_id=None
             if not item_id:
                 # build a list of (item id, item) for the type of obj being found
                 # determine if object should be filtered by district
-                print 'obj:', obj
                 if p.is_dist:
                     source = get_model(obj).objects.filter(struct=p.struct).filter(struct__in_use_b=1)
                 else:
                     try:
+                        # don't do struct in_use filtering for clubs to avoid
+                        # needing a complicated query for the club_merge table
+                        if obj == 'club':
+                            raise Exception
                         source = get_model(obj).objects.filter(struct__in_use_b=1)
                         print 'used struct lookup'
                     except Exception as e:
-                        print e[0]
                         source = get_model(obj).objects.all()
                         print 'no struct lookup'
                 items = [(s.id, s) for s in source]
