@@ -151,6 +151,11 @@ class Club(models.Model):
             name += ' (%s)' % (club_types[self.type][1])
         return name
 
+class ClubMerge(models.Model):
+    id = models.IntegerField(primary_key=True)
+    club = models.ForeignKey(Club, verbose_name="Club")
+    new_struct = models.ForeignKey(Struct, verbose_name="Merged parent district")
+
 class ClubType(models.Model):
     id = models.IntegerField(primary_key=True)
     type = models.CharField('Type of club', max_length=40)
@@ -352,6 +357,13 @@ class StructChair(models.Model):
 
     def __unicode__(self):
         return self.member_id
+
+class StructMerge(models.Model):
+    previous_struct = models.ForeignKey(Struct)
+    current_struct = models.ForeignKey(Struct)
+
+    class Meta:
+        app_label = 'md_directory'
 
 class RegionChair(models.Model):
     ''' Chairs of regions

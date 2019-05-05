@@ -64,6 +64,8 @@ class Struct(models.Model):
                                help_text = 'Set to name of parent Multiple District. Leave blank if this is already a Multiple District')
     website = models.URLField(blank=True)
     type = models.ForeignKey(StructType, verbose_name="Type of district", null=True, blank=True)
+    in_use_b = models.BooleanField('Is struct in use?', blank=True)
+
 
     class Meta:
         app_label = 'md_directory'
@@ -149,6 +151,11 @@ class Club(models.Model):
         if self.type > 0:
             name += ' (%s)' % (club_types[self.type][1])
         return name
+
+class ClubMerge(models.Model):
+    id = models.IntegerField(primary_key=True)
+    club = models.ForeignKey(Club, verbose_name="Club")
+    new_struct = models.ForeignKey(Struct, verbose_name="New Struct")
 
 class ClubType(models.Model):
     id = models.IntegerField(primary_key=True)

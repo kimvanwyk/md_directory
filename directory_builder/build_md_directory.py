@@ -306,6 +306,9 @@ class LatexHeader(object):
         lines.append(r'\usepackage[margin=2cm,ignoreheadfoot]{geometry}')
         lines.append(r'\hypersetup{colorlinks={true}, urlcolor=blue, linkcolor=black}')
         lines.append(r'\urlstyle{same}')
+        lines.append(r'\usepackage{titlesec}')
+        lines.append(r'\titleformat{\chapter}{\Large\bfseries}{}{0pt}{\huge}')
+        lines.append(r'\usepackage{savetrees}')
 
         lines.append(r'\begin{document}')
         import datetime
@@ -366,7 +369,7 @@ def get_title(off_id):
         ip = True
     return (off_id, title[0], ip)
     
-def get_past_officer_latex(office, deceased, offs, in_district):
+def get_past_officer_latex(office, deceased, offs, in_district, prev_district=False):
     ''' Generate the latex for a list of past officers in 'offs' for the office title of 'office'.
     'in_district' governs whether to add a title text that these are officers from outside the district
 
@@ -380,13 +383,6 @@ def get_past_officer_latex(office, deceased, offs, in_district):
         num_years = 1
 
     if offs:
-        if not in_district:
-            # only officers of the current district start new 2-col headings
-            ret.append('')
-            ret.append(r'\setlength{\columnseprule}{2pt}')
-            ret.append(r'\begin{multicols}{2}[\section{Past %ss}]' % office)
-        else:
-            ret.append(r'\section{Past %ss from other Districts}' % office)
         # beg tracks the starting month of the term in office, only useful if one person didn't serve the whole term
         beg = 1
     # Return a list of (year served, end month, member dict)
@@ -400,17 +396,18 @@ def get_past_officer_latex(office, deceased, offs, in_district):
             col = [r'\textbf{%d/%d}' % (y, y+num_years), 
                    '%s' % (((month < 12) or (beg > 1)) and '(%s to %s)' 
                            % (MONTHS[beg][:3], MONTHS[month][:3]) or '')]
-            if in_district:
-                col.extend(['Served in:', '%s' % struct_name])
-            # add member to table. 
-            ret.extend(make_latex_table([col, make_member_col_db_handler(member_dict)]))
+            # add member to table.
+            mc = make_member_col_db_handler(member_dict)
+            if in_district or prev_district:
+                mc.extend(['\\textbf{Served in %s}' % struct_name])
+            ret.extend(make_latex_table([col, mc]))
             if  month < 12:
                 beg = month + 1
             else:
                 beg = 1
     return (deceased, ret)
 
-def get_past_officers(office, struct_id, other_districts, footnote=False):
+def get_past_officers(office, struct_id, other_districts, footnote=False, prev_structs=False):
     ''' Return a tuple of (.tex list of details of past officers, Bool of whether the called to higher service footnote has been printed)
     The .tex list is based on 'office', the name of the office from the office titles table,
     for the given struct id
@@ -418,13 +415,21 @@ def get_past_officers(office, struct_id, other_districts, footnote=False):
     'other_districts' governs whether to include a list of officers from other districts
     '''
     ret = []
-    offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, year=cur_year)
+    ret.append('')
+    ret.append(r'\setlength{\columnseprule}{2pt}')
+    ret.append(r'\begin{multicols}{2}[\section{Past %ss}]' % office)
+
+    offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, prev_structs=prev_structs, year=cur_year)
     deceased = False
-    deceased, text = get_past_officer_latex(office, deceased, offs['local'], False)
+    if prev_structs and offs['prev']:
+        deceased, text = get_past_officer_latex(office, deceased, offs['prev'], in_district=False, prev_district=True)
+        ret.extend(text)
+    deceased, text = get_past_officer_latex(office, deceased, offs['local'], in_district=False, prev_district=False)
     ret.extend(text)
 
     if other_districts and offs['other']:
-        deceased, text = get_past_officer_latex(office, deceased, offs['other'], True)
+        ret.append(r'\section{Past %ss from other Districts}' % office)
+        deceased, text = get_past_officer_latex(office, deceased, offs['other'], in_district=True, prev_district=False)
         ret.extend(text)
 
     if ret:
@@ -447,7 +452,9 @@ def get_officers(offices, struct_id):
     t = db.tables['md_directory_struct']
     for o,use_child in offices:
         if use_child:
-            children = db.conn.execute(select([t.c.id, t.c.name], t.c.parent_id == struct_id)).fetchall()
+            children = db.conn.execute(select([t.c.id, t.c.name], 
+                                              and_(t.c.parent_id == struct_id,
+                                                   t.c.in_use_b == 1))).fetchall()
             for c in children:
                 offs.append((o, c[0], ', District %s' % c[1]))
         else:
@@ -530,7 +537,7 @@ def get_chap_heading(struct, title):
     '''
     name = struct['name']
     # chap is a string, used for chapter totals, for the overall document
-    return r'\chapter{%s %s}' % (title, name)
+    return r'\chapter{%s}' % name
 
 def get_merch_centre(md_id):
     ''' Return .tex content with details of a Merchandise Centre for a given MD id
@@ -704,15 +711,22 @@ def get_regions_and_zones(struct_id):
     # reset out, to hold zones
     out = []
     # build a dict, keyed by zone with a list of club names in that zone as the value, by looping over each club:
-    t = db.tables['md_directory_club'].c    
-    items = db.conn.execute(select([t.zone_id, t.name, t.type],
-                                   and_(t.struct_id == struct_id, t.closed_b == False)).order_by(t.name)).fetchall()
-
-    for z, name, t in items:
+    t = db.tables['md_directory_club']
+    clubs = list(db.conn.execute(select([t.c.id, t.c.name, t.c.type, t.c.zone_id],
+                                   and_(t.c.struct_id == struct_id, t.c.closed_b == False))).fetchall())
+    for (cid, name, ctype, zid) in clubs:
+        tc = db.tables['md_directory_clubzone']
+        tz = db.tables['md_directory_zone']
+        res = db.conn.execute(select([tc.c.zone_id], and_(tc.c.club_id == cid, tc.c.year == cur_year,
+                                                          tz.c.id == tc.c.zone_id, tz.c.struct_id == struct_id))).fetchone()
+        if res:
+            zone_id = res[0]
+        else:
+            zone_id = zid
         # add club type if not a regular club
-        if t > 0:
-            name += ' (%s Club)' % CHILD_NAMES[t]
-        zones_dict[z].append(name)
+        if ctype > 0:
+            name += ' (%s Club)' % CHILD_NAMES[ctype]
+        zones_dict[zone_id].append(name)
 
     # Get zone name chair member_id for each zone, ordered by zone name
     t = db.tables['md_directory_zone'].c
@@ -757,7 +771,8 @@ def get_club_info(struct_id):
     ret = []
     # grab a list of all clubs in the struct
     t = db.tables['md_directory_club']
-    clubs = t.select(and_(t.c.struct_id == struct_id, t.c.closed_b == False)).order_by(t.c.name.asc()).execute()
+    clubs = list(t.select(and_(t.c.struct_id == struct_id, t.c.closed_b == False)).execute())
+    clubs.sort(key=lambda c: c.name)
     for c in clubs: 
         club_officers = []
         # obtain the correct title id for each club officer and see if a member_id exists for the club's officer
@@ -801,8 +816,13 @@ def get_club_info(struct_id):
 
         # Get zone and region info
         zonestr = ''
-        t = db.tables['md_directory_zone']
-        zone = db.conn.execute(select([t], t.c.id == c.zone_id)).fetchone()
+        tc = db.tables['md_directory_clubzone']
+        tz = db.tables['md_directory_zone']
+        zone = db.conn.execute(select([tz], and_(tc.c.zone_id == tz.c.id, tc.c.club_id == c.id, 
+                                                 tc.c.year == cur_year, tz.c.struct_id == struct_id))).fetchone()
+        if not zone:
+            tz = db.tables['md_directory_zone']
+            zone = db.conn.execute(select([tz], and_(tz.c.id == c.zone_id))).fetchone()
         if zone:
             # Check if zone is in a region
             if zone.in_region_b:
@@ -931,12 +951,12 @@ def build_directory_contents(struct_id, year):
         # Add PCC info
         # council chair is officer ID 11
         # Set not to show officers from other districts
-        tex, footnote = get_past_officers('Council Chairperson', md['id'], False)
+        tex, footnote = get_past_officers('Council Chairperson', md['id'], False, prev_structs=False)
         out.extend(tex)
         # Add ID info, ID 21. Pass in footnote from previous list of past officers
         # use only .tex return from get_past_officers
         # Set not to show officers from other districts
-        out.extend(get_past_officers('International Director', md['id'], False, footnote)[0])
+        out.extend(get_past_officers('International Director', md['id'], False, footnote, prev_structs=False)[0])
         total += out
         # build Latex .tex file, using an article style
         fn = os.path.normpath(os.path.join('build', '%s_%s_directory_md_details_only' % (year_prefix, md['name'].lower().replace(' ', '_'))))
@@ -963,7 +983,7 @@ def build_directory_contents(struct_id, year):
         # Add PDG info
         out.append('')
         # DG is 5
-        out.extend(get_past_officers('District Governor', dist['id'], True)[0])
+        out.extend(get_past_officers('District Governor', dist['id'], True, prev_structs=True)[0])
         total += out
         fn = os.path.normpath(os.path.join('build', '%s_%s_directory' % (year_prefix, name.lower().replace(' ', '_'))))
         files.append(fn)
@@ -996,9 +1016,12 @@ class DBHandler(object):
         metadata.bind = engine
         self.conn = engine.connect()
         self.tables = {}
-        table_list = ['md_directory_club', 'md_directory_clubofficer', 'md_directory_meetings', 'md_directory_member', 'md_directory_merchcentre', 'md_directory_districtoffice',
-                      'md_directory_merlcoordinators', 'md_directory_officertitle', 'md_directory_region', 'md_directory_regionchair', 'md_directory_struct', 
-                      'md_directory_structchair', 'md_directory_structofficer', 'md_directory_zone', 'md_directory_zonechair']
+        table_list = ['md_directory_club', 'md_directory_clubofficer', 
+                      'md_directory_clubzone', 'md_directory_meetings', 
+                      'md_directory_member', 'md_directory_merchcentre', 'md_directory_districtoffice',
+                      'md_directory_merlcoordinators', 'md_directory_officertitle', 'md_directory_region', 
+                      'md_directory_regionchair', 'md_directory_struct', 'md_directory_structchair', 
+                      'md_directory_structofficer', 'md_directory_zone', 'md_directory_zonechair']
         for t in table_list:
             self.tables[t] = Table(t, metadata, autoload=True, schema='%s' % schema)
 
@@ -1073,7 +1096,6 @@ def build_directories(db_settings, authors=[], md_name=None, year=None):
         os.mkdir('build')
     shutil.copy2('lionsemblem_clr.png', 'build')
     files = build_directory_contents(md.id, year)
-    print files
     # go to the build directory, creating it if need be
     from pdflatex import build_pdf
     # delete logging file
