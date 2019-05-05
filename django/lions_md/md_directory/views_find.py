@@ -170,8 +170,11 @@ def find_s_mc_lobs_do_r_z_c(request, obj, dest=None, use_year=True, item_id=None
                         # needing a complicated query for the club_merge table
                         if obj == 'club':
                             raise Exception
-                        source = get_model(obj).objects.filter(struct__in_use_b=1)
-                        print 'used struct lookup'
+                        if obj == 'struct':
+                            source = get_model(obj).objects.filter(in_use_b=1)
+                        else:
+                            source = get_model(obj).objects.filter(struct__in_use_b=1)
+                            print 'used struct lookup'
                     except Exception as e:
                         source = get_model(obj).objects.all()
                         print 'no struct lookup'
