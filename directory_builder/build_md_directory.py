@@ -306,6 +306,9 @@ class LatexHeader(object):
         lines.append(r'\usepackage[margin=2cm,ignoreheadfoot]{geometry}')
         lines.append(r'\hypersetup{colorlinks={true}, urlcolor=blue, linkcolor=black}')
         lines.append(r'\urlstyle{same}')
+        lines.append(r'\usepackage{titlesec}')
+        lines.append(r'\titleformat{\chapter}{\Large\bfseries}{}{0pt}{\huge}')
+        lines.append(r'\usepackage{savetrees}')
 
         lines.append(r'\begin{document}')
         import datetime

@@ -246,11 +246,8 @@ def get_past_struct_officers(office, struct_id, other_structs=False, prev_struct
 
     items.append(((Q(struct__id=struct_id),), 'local'))
     if other_structs:
-        # club_merge = dict([(cm.club, cm.new_struct)] for cm in models.ClubMerge.all()])
-        # look up new struct for officer
-        items.append(([~Q(struct__id=struct_id),~Q(struct__in=prev_structs),Q(member__club__struct=local_struct, member__deceased_b=False)], 'other'))
-        # if prev_structs:
-        #     items[-1][0].append(Q(struct__in=prev_structs))
+        items.append(([~Q(struct__id=struct_id),~Q(struct__in=prev_structs),
+                       Q(member__club__struct=local_struct, member__deceased_b=False, member__resigned_b=False)], 'other'))
     else:
         out['other'] = []
 
