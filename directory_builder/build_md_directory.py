@@ -417,11 +417,11 @@ def get_past_officers(office, struct_id, other_districts, footnote=False, prev_s
 
     offs = db_handler.get_past_struct_officers(office, struct_id, other_structs=other_districts, prev_structs=prev_structs, year=cur_year)
     deceased = False
-    deceased, text = get_past_officer_latex(office, deceased, offs['local'], in_district=False, prev_district=False)
-    ret.extend(text)
     if prev_structs and offs['prev']:
         deceased, text = get_past_officer_latex(office, deceased, offs['prev'], in_district=False, prev_district=True)
         ret.extend(text)
+    deceased, text = get_past_officer_latex(office, deceased, offs['local'], in_district=False, prev_district=False)
+    ret.extend(text)
 
     if other_districts and offs['other']:
         ret.append(r'\section{Past %ss from other Districts}' % office)
@@ -708,12 +708,8 @@ def get_regions_and_zones(struct_id):
     out = []
     # build a dict, keyed by zone with a list of club names in that zone as the value, by looping over each club:
     t = db.tables['md_directory_club']
-    tm = db.tables['md_directory_clubmerge']
     clubs = list(db.conn.execute(select([t.c.id, t.c.name, t.c.type, t.c.zone_id],
                                    and_(t.c.struct_id == struct_id, t.c.closed_b == False))).fetchall())
-    clubs += list(db.conn.execute(select([t.c.id, t.c.name, t.c.type, t.c.zone_id],
-                                         and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id, 
-                                              t.c.closed_b == False))).fetchall())
     for (cid, name, ctype, zid) in clubs:
         tc = db.tables['md_directory_clubzone']
         tz = db.tables['md_directory_zone']
@@ -771,10 +767,7 @@ def get_club_info(struct_id):
     ret = []
     # grab a list of all clubs in the struct
     t = db.tables['md_directory_club']
-    tm = db.tables['md_directory_clubmerge']
     clubs = list(t.select(and_(t.c.struct_id == struct_id, t.c.closed_b == False)).execute())
-    clubs += list(t.select(and_(tm.c.new_struct_id == struct_id, tm.c.club_id == t.c.id, 
-                                t.c.closed_b == False)).execute())
     clubs.sort(key=lambda c: c.name)
     for c in clubs: 
         club_officers = []
@@ -1019,7 +1012,7 @@ class DBHandler(object):
         metadata.bind = engine
         self.conn = engine.connect()
         self.tables = {}
-        table_list = ['md_directory_club', 'md_directory_clubmerge', 'md_directory_clubofficer', 
+        table_list = ['md_directory_club', 'md_directory_clubofficer', 
                       'md_directory_clubzone', 'md_directory_meetings', 
                       'md_directory_member', 'md_directory_merchcentre', 'md_directory_districtoffice',
                       'md_directory_merlcoordinators', 'md_directory_officertitle', 'md_directory_region', 

@@ -235,19 +235,22 @@ def get_past_struct_officers(office, struct_id, other_structs=False, prev_struct
     out = {}
 
     # A list of Q objects to filter on, the key to store them in
-    items = [((Q(struct__id=struct_id),), 'local')]
+    items = []
 
     if prev_structs:
         prev_structs = [sm.previous_struct for sm in models.StructMerge.objects.filter(current_struct=struct_id)]
         items.append(((Q(struct__in=prev_structs),), 'prev'))
     else:
-        prev_structs = []
+        prev_structs = [local_struct]
         out['prev'] = []
 
+    items.append(((Q(struct__id=struct_id),), 'local'))
     if other_structs:
-        items.append(([~Q(struct__id=struct_id),Q(member__club__struct=local_struct, member__deceased_b=False)], 'other'))
-        if prev_structs:
-            items[-1][0].append(~Q(struct__in=prev_structs))
+        # club_merge = dict([(cm.club, cm.new_struct)] for cm in models.ClubMerge.all()])
+        # look up new struct for officer
+        items.append(([~Q(struct__id=struct_id),~Q(struct__in=prev_structs),Q(member__club__struct=local_struct, member__deceased_b=False)], 'other'))
+        # if prev_structs:
+        #     items[-1][0].append(Q(struct__in=prev_structs))
     else:
         out['other'] = []
 
