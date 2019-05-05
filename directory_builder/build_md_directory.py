@@ -393,10 +393,11 @@ def get_past_officer_latex(office, deceased, offs, in_district, prev_district=Fa
             col = [r'\textbf{%d/%d}' % (y, y+num_years), 
                    '%s' % (((month < 12) or (beg > 1)) and '(%s to %s)' 
                            % (MONTHS[beg][:3], MONTHS[month][:3]) or '')]
+            # add member to table.
+            mc = make_member_col_db_handler(member_dict)
             if in_district or prev_district:
-                col.extend(['Served in:', '%s' % struct_name])
-            # add member to table. 
-            ret.extend(make_latex_table([col, make_member_col_db_handler(member_dict)]))
+                mc.extend(['\\textbf{Served in %s}' % struct_name])
+            ret.extend(make_latex_table([col, mc]))
             if  month < 12:
                 beg = month + 1
             else:
