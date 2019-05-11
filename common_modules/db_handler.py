@@ -1,4 +1,5 @@
 import ConfigParser
+from enum import Enum
 import operator
 
 import attr
@@ -12,7 +13,7 @@ PREV_TITLES = (('PID','International Director'), ('PCC', 'Council Chairperson'),
 
 TABLE_PREFIX = 'md_directory'
 
-IDS = {'Kim': 2602128,
+MEMBER_IDS = {'Kim': 2602128,
        'Vicki': 2352224,
        'Denis': 666898,
        'Alistair': 903648,
@@ -28,6 +29,16 @@ IDS = {'Kim': 2602128,
        'Lyn': 349981,
        'Malcolm': 990112
        }
+
+CLUB_IDS = {'North Durban': 27814,
+            'Benoni Lakes': 115092
+       }
+
+class ClubType(Enum):
+    lions = 1
+    branch = 2
+    leos = 3
+    lioness = 4
 
 @attr.s
 class Member(object):
@@ -46,6 +57,22 @@ class Member(object):
     email = attr.ib(default=None)
     club = attr.ib(default=None)
     title = attr.ib(default=None)
+
+@attr.s
+class Club(object):
+    id = attr.ib(factory=int)
+    club_type = attr.ib(default=ClubType.lions)
+    struct = attr.ib(default=None)
+    prev_struct = attr.ib(default=None)
+    name = attr.ib(default=None)
+    meeting_time = attr.ib(default=None)
+    meeting_address = attr.ib(factory=list)
+    postal_address = attr.ib(factory=list)
+    charter_year = attr.ib(factory=int)
+    website = attr.ib(default=None)
+    is_suspended = attr.ib(default=False)
+    zone = attr.ib(default=None)
+    is_closed = attr.ib(default=False)
 
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
@@ -125,6 +152,25 @@ class DBHandler(object):
             title = search_officers(member_id, 'clubofficer', club_officers)
         return title
 
+    def get_club(self, club_id, mapping={'suspended_b': 'is_suspended', 'closed_b': 'is_closed',
+                                         'meet_time':'meeting_time'},
+                 exclude=('parent_id', 'struct_id', 'prev_struct_id', 'type', 'add1', 'add2', 'add3',
+                 'add4', 'add5', 'po_code', 'postal', 'postal1', 'postal2', 'postal3', 'postal4', 'postal5',
+                 'zone_id')):
+        t = db.tables['club']
+        res = db.conn.execute(t.select(t.c.id == club_id)).fetchone()
+        map = {}
+        for (k,v) in res.items():
+            if k not in exclude:
+                map[mapping.get(k, k)] = bool(v) if '_b' in k else v
+        map['meeting_address'] = [res['add%s' % i] for i in xrange(1,6) if res['add%s' % i]]
+        map['postal_address'] = [res['postal%s' % i] for i in xrange(1,6) if res['postal%s' % i]]
+        if res['po_code']:
+            map['postal_address'].append(res['po_code'])
+        c = Club(**map)
+        return c
+
+
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
     cp = ConfigParser.SafeConfigParser()
@@ -135,7 +181,10 @@ def get_db_settings(fn='db_settings.ini', sec='DB'):
     return settings
 
 db = DBHandler(year=2019, **get_db_settings())
-for (k,v) in IDS.items():
-    # print k, db.get_title(v)
-    print db.get_member(v)
+# for (k,v) in MEMBER_IDS.items():
+#     # print k, db.get_title(v)
+#     print db.get_member(v)
+
+for (k,v) in CLUB_IDS.items():
+    print db.get_club(v)
 

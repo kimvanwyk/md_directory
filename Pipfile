@@ -17,6 +17,7 @@ south = "==0.8.1"
 mysql-connector-python = "*"
 mysql-python = "*"
 attrs = "*"
+"enum34" = "*"
 
 
 [requires]
