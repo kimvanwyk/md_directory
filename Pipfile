@@ -11,12 +11,12 @@ name = "pypi"
 
 [packages]
 
-Django = "==1.5.1"
-SQLAlchemy = "==0.9.8"
-South = "==0.8.1"
+django = "==1.5.1"
+sqlalchemy = "==0.9.8"
+south = "==0.8.1"
 mysql-connector-python = "*"
-MySQL-python = "*"
-attr = "*"
+mysql-python = "*"
+attrs = "*"
 
 
 [requires]
