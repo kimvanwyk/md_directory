@@ -1,17 +1,24 @@
 [[source]]
+
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
+
 [dev-packages]
 
+
+
 [packages]
+
 Django = "==1.5.1"
 SQLAlchemy = "==0.9.8"
-south = "==0.8.1"
-# mysql-python = "*"
+South = "==0.8.1"
 mysql-connector-python = "*"
-mysql-python = "*"
+MySQL-python = "*"
+attr = "*"
+
 
 [requires]
+
 python_version = "2.7"
