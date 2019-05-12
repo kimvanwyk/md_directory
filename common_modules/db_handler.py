@@ -99,16 +99,43 @@ class DBHandler(object):
         for t in tables:
             self.tables[t.split(TABLE_PREFIX)[-1].strip('_')] = Table(t, metadata, autoload=True, schema=schema)
 
-    def get_member(self, member_id, mapping={'deceased_b': 'is_deceased', 'resigned_b': 'is_resigned',
-                                             'partner_lion_b': 'is_partner_lion', 'club_id': 'club'}):
-        t = db.tables['member']
-        res = db.conn.execute(t.select(t.c.id == member_id)).fetchone()
+    def __db_lookup(self, lookup_id, table, mapping, exclude=[]):
+        t = db.tables[table]
+        res = db.conn.execute(t.select(t.c.id == lookup_id)).fetchone()
         map = {}
         for (k,v) in res.items():
-            map[mapping.get(k, k)] = bool(v) if '_b' in k else v
+            if k not in exclude:
+                map[mapping.get(k, k)] = bool(v) if '_b' in k else v
+        return (map, res)
+
+    def get_member(self, member_id, mapping={'deceased_b': 'is_deceased', 'resigned_b': 'is_resigned',
+                                             'partner_lion_b': 'is_partner_lion', 'club_id': 'club'}):
+        (map, res) = self.__db_lookup(member_id, 'member', mapping)
         map['title'] = self.get_title(member_id)
         m = Member(**map)
         return m
+
+    def get_club(self, club_id, mapping={'suspended_b': 'is_suspended', 'closed_b': 'is_closed',
+                                         'meet_time':'meeting_time'},
+                 exclude=('parent_id', 'struct_id', 'prev_struct_id', 'type', 'add1', 'add2', 'add3',
+                 'add4', 'add5', 'po_code', 'postal', 'postal1', 'postal2', 'postal3', 'postal4', 'postal5',
+                 'zone_id')):
+        (map, res) = self.__db_lookup(club_id, 'club', mapping, exclude)
+        map['meeting_address'] = [res['add%s' % i] for i in xrange(1,6) if res['add%s' % i]]
+        map['postal_address'] = [res['postal%s' % i] for i in xrange(1,6) if res['postal%s' % i]]
+        if res['po_code']:
+            map['postal_address'].append(res['po_code'])
+        c = Club(**map)
+        return c
+
+    def get_struct(self, struct_id, mapping={'in_use_b': 'is_in_use'}, 
+                   class_map={0: District, 1: MultipleDistrict},
+                   exclude=('parent_id', 'type_id')):
+        (map, res) = self.__db_lookup(struct_id, 'struct', mapping, exclude)
+        if res.parent_id:
+            map['parent'] = self.get_struct(res.parent_id)
+        s = class_map[res['type_id']](**map)
+        return s
 
     def get_title(self, member_id, 
                   struct_officers = ((19, 0, operator.eq, "IP"),  (19, -1, operator.eq, "PIP"),  (21, 0, operator.eq, "ID"),  
@@ -163,38 +190,6 @@ class DBHandler(object):
             title = search_officers(member_id, 'clubofficer', club_officers)
         return title
 
-    def get_club(self, club_id, mapping={'suspended_b': 'is_suspended', 'closed_b': 'is_closed',
-                                         'meet_time':'meeting_time'},
-                 exclude=('parent_id', 'struct_id', 'prev_struct_id', 'type', 'add1', 'add2', 'add3',
-                 'add4', 'add5', 'po_code', 'postal', 'postal1', 'postal2', 'postal3', 'postal4', 'postal5',
-                 'zone_id')):
-        t = db.tables['club']
-        res = db.conn.execute(t.select(t.c.id == club_id)).fetchone()
-        map = {}
-        for (k,v) in res.items():
-            if k not in exclude:
-                map[mapping.get(k, k)] = bool(v) if '_b' in k else v
-        map['meeting_address'] = [res['add%s' % i] for i in xrange(1,6) if res['add%s' % i]]
-        map['postal_address'] = [res['postal%s' % i] for i in xrange(1,6) if res['postal%s' % i]]
-        if res['po_code']:
-            map['postal_address'].append(res['po_code'])
-        c = Club(**map)
-        return c
-
-    def get_struct(self, struct_id, mapping={'in_use_b': 'is_in_use'}, 
-                   class_map={0: District, 1: MultipleDistrict},
-                   exclude=('parent_id', 'type_id')):
-        t = db.tables['struct']
-        res = db.conn.execute(t.select(t.c.id == struct_id)).fetchone()
-        map = {}
-        for (k,v) in res.items():
-            if k not in exclude:
-                map[mapping.get(k, k)] = bool(v) if '_b' in k else v
-        if res.parent_id:
-            map['parent'] = self.get_struct(res.parent_id)
-        s = class_map[res['type_id']](**map)
-        return s
-
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
     cp = ConfigParser.SafeConfigParser()
@@ -205,12 +200,11 @@ def get_db_settings(fn='db_settings.ini', sec='DB'):
     return settings
 
 db = DBHandler(year=2019, **get_db_settings())
-# for (k,v) in MEMBER_IDS.items():
-#     # print k, db.get_title(v)
-#     print db.get_member(v)
+for (k,v) in MEMBER_IDS.items():
+    print db.get_member(v)
 
-# for (k,v) in CLUB_IDS.items():
-#     print db.get_club(v)
+for (k,v) in CLUB_IDS.items():
+    print db.get_club(v)
 
 print db.get_struct(5)
 print db.get_struct(9)
