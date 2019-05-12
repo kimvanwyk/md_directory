@@ -9,9 +9,6 @@ from sqlalchemy import create_engine, Table, MetaData, and_, or_, select
 from utilities import get_current_year
 
 HANDLE_EXC = True
-MEMBER_PHS = ['home_ph', 'bus_ph', 'cell_ph', 'fax']
-PREV_TITLES = (('PID','International Director'), ('PCC', 'Council Chairperson'), ('PDG', 'District Governor'))
-
 TABLE_PREFIX = 'md_directory'
 
 MEMBER_IDS = {'Kim': 2602128,
@@ -104,6 +101,16 @@ class Officer(object):
     title = attr.ib(default=None)
     member = attr.ib(default=None)
     committee = attr.ib(factory=list)
+
+@attr.s
+class PastOfficer(object):
+    year = attr.ib(factory=int)
+    end_month = attr.ib(default=12)
+    member = attr.ib(default=None)
+
+@attr.s
+class PastDG(object):
+    previous_district = attr.ib(factory=int)
 
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
@@ -253,20 +260,32 @@ class DBHandler(object):
         s = cls(**map)
         return s
 
-    def get_struct_clubs(self, struct_id):
+    def get_district_clubs(self, struct_id):
         t = self.tables['club']
         res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.name)).fetchall()
         return [self.get_club(r.id) for r in res]
 
-    def get_struct_regions(self, struct_id):
+    def get_district_regions(self, struct_id):
         t = self.tables['region']
         res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
         return [self.get_region(r.id) for r in res]
 
-    def get_struct_zones(self, struct_id):
+    def get_district_zones(self, struct_id):
         t = self.tables['zone']
         res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
         return [self.get_zone(r.id) for r in res]
+
+    def get_past_struct_officers(self, struct_id, office_id):
+        t = self.tables['structofficer']
+        res = self.conn.execute(t.select(and_(t.c.struct_id == struct_id,
+                                              t.c.office_id == office_id)).order_by(t.c.year, t.c.end_month)).fetchall()
+        return [PastOfficer(r.year, r.end_month, self.get_member(r.member_id)) for r in res]
+
+    def get_past_ccs(self, struct_id):
+        return self.get_past_struct_officers(struct_id, 11)
+
+    def get_past_dgs(self, struct_id):
+        return self.get_past_struct_officers(struct_id, 5)
 
     def get_title(self, member_id, 
                   struct_officers = ((19, 0, operator.eq, "IP"),  (19, -1, operator.eq, "PIP"),  (21, 0, operator.eq, "ID"),  
@@ -349,6 +368,9 @@ db = DBHandler(year=2019, **get_db_settings())
 # pprint(db.get_region_zones(4))
 # pprint(db.get_zone_clubs(41))
 
-pprint([(c.name, (c.zone.name, c.zone.region.name) if c.zone else 'No Zone') for c in db.get_struct_clubs(9) if not c.is_closed])
-# pprint([r.name for r in db.get_struct_regions(9)])
-# pprint([z.name for z in db.get_struct_zones(9)])
+# pprint([(c.name, (c.zone.name, c.zone.region.name) if c.zone else 'No Zone') for c in db.get_district_clubs(9) if not c.is_closed])
+# pprint([r.name for r in db.get_district_regions(9)])
+# pprint([z.name for z in db.get_district_zones(9)])
+
+# pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_ccs(5)])
+pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(3)])
