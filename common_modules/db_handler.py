@@ -153,12 +153,31 @@ class DBHandler(object):
                                          'meet_time':'meeting_time'},
                  exclude=('parent_id', 'struct_id', 'prev_struct_id', 'type', 'add1', 'add2', 'add3',
                  'add4', 'add5', 'po_code', 'postal', 'postal1', 'postal2', 'postal3', 'postal4', 'postal5',
-                 'zone_id')):
+                 'zone_id'),
+                 office_ids = {ClubType.lions: (1,2,3,4),
+                               ClubType.branch: (16,1,2,3),
+                               ClubType.lioness: (16,1,2,3),
+                               ClubType.leos: (20,1,2,3)},
+                 club_type_mapping = {0: ClubType.lions,
+                                      1: ClubType.branch,
+                                      2: ClubType.lioness,
+                                      3: ClubType.leos}):
         (map, res) = self.__db_lookup(club_id, 'club', mapping, exclude)
         map['meeting_address'] = [res['add%s' % i] for i in xrange(1,6) if res['add%s' % i]]
         map['postal_address'] = [res['postal%s' % i] for i in xrange(1,6) if res['postal%s' % i]]
         if res['po_code']:
             map['postal_address'].append(res['po_code'])
+        map['club_type'] = club_type_mapping[res['type']]
+
+        ts = self.tables['clubofficer']
+        map['officers'] = []
+        for office_id_index in office_ids[map['club_type']]:
+            (title, office_id, year) = self.officer_titles[office_id_index]
+            res = self.conn.execute(ts.select(and_(ts.c.club_id == club_id,
+                                                   ts.c.year == year,
+                                                   ts.c.office_id == office_id))).fetchone()
+            if res:
+                map['officers'].append(Officer(title, self.get_member(res.member_id, email=res.email)))
         c = Club(**map)
         return c
 
@@ -287,16 +306,16 @@ db = DBHandler(year=2019, **get_db_settings())
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
 
-# for (k,v) in CLUB_IDS.items():
-#     print db.get_club(v)
+for (k,v) in CLUB_IDS.items():
+    print db.get_club(v)
 
 # print db.get_struct(5)
 # print db.get_struct(9)
 
-print db.get_region(3)
+# print db.get_region(3)
 # print db.get_region(4)
 
-print db.get_zone(49)
+# print db.get_zone(49)
 # print db.get_zone(50)
 
 # pprint(db.get_region_zones(4))
