@@ -240,6 +240,16 @@ class DBHandler(object):
         s = cls(**map)
         return s
 
+    def get_struct_regions(self, struct_id):
+        t = self.tables['region']
+        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
+        return [self.get_region(r.id) for r in res]
+
+    def get_struct_zones(self, struct_id):
+        t = self.tables['zone']
+        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
+        return [self.get_zone(r.id) for r in res]
+
     def get_title(self, member_id, 
                   struct_officers = ((19, 0, operator.eq, "IP"),  (19, -1, operator.eq, "PIP"),  (21, 0, operator.eq, "ID"),  
                                      (21, -1, operator.eq, "ID"),  (11, 0, operator.eq, "CC"),  (5, 0, operator.eq, "DG"),  
@@ -306,8 +316,8 @@ db = DBHandler(year=2019, **get_db_settings())
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
 
-for (k,v) in CLUB_IDS.items():
-    print db.get_club(v)
+# for (k,v) in CLUB_IDS.items():
+#     print db.get_club(v)
 
 # print db.get_struct(5)
 # print db.get_struct(9)
@@ -320,3 +330,6 @@ for (k,v) in CLUB_IDS.items():
 
 # pprint(db.get_region_zones(4))
 # pprint(db.get_zone_clubs(41))
+
+pprint([r.name for r in db.get_struct_regions(9)])
+pprint([z.name for z in db.get_struct_zones(9)])
