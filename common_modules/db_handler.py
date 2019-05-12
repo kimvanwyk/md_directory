@@ -178,6 +178,13 @@ class DBHandler(object):
                                                    ts.c.office_id == office_id))).fetchone()
             if res:
                 map['officers'].append(Officer(title, self.get_member(res.member_id, email=res.email)))
+
+        t = self.tables['clubzone']
+        res = db.conn.execute(t.select(and_(t.c.club_id == club_id,
+                                            t.c.year == self.year))).fetchone()
+        if res:
+            map['zone'] = self.get_zone(res.zone_id)
+        
         c = Club(**map)
         return c
 
@@ -245,6 +252,11 @@ class DBHandler(object):
                                             committee=r.committee_members.split(',') if r.committee_members else []) for r in res])
         s = cls(**map)
         return s
+
+    def get_struct_clubs(self, struct_id):
+        t = self.tables['club']
+        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.name)).fetchall()
+        return [self.get_club(r.id) for r in res]
 
     def get_struct_regions(self, struct_id):
         t = self.tables['region']
@@ -326,7 +338,7 @@ db = DBHandler(year=2019, **get_db_settings())
 #     print db.get_club(v)
 
 # print db.get_struct(5)
-print db.get_struct(9)
+# print db.get_struct(9)
 
 # print db.get_region(3)
 # print db.get_region(4)
@@ -337,5 +349,6 @@ print db.get_struct(9)
 # pprint(db.get_region_zones(4))
 # pprint(db.get_zone_clubs(41))
 
+pprint([(c.name, (c.zone.name, c.zone.region.name) if c.zone else 'No Zone') for c in db.get_struct_clubs(9) if not c.is_closed])
 # pprint([r.name for r in db.get_struct_regions(9)])
 # pprint([z.name for z in db.get_struct_zones(9)])
