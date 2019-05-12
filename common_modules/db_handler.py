@@ -74,6 +74,17 @@ class Club(object):
     zone = attr.ib(default=None)
     is_closed = attr.ib(default=False)
 
+@attr.s
+class MultipleDistrict(object):
+    id = attr.ib(factory=int)
+    name = attr.ib(default=None) 
+    website = attr.ib(default=None) 
+    is_in_use = attr.ib(default=False)
+
+@attr.s
+class District(MultipleDistrict):
+    parent = attr.ib(default=None) 
+
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
         if not year:
@@ -170,6 +181,19 @@ class DBHandler(object):
         c = Club(**map)
         return c
 
+    def get_struct(self, struct_id, mapping={'in_use_b': 'is_in_use'}, 
+                   class_map={0: District, 1: MultipleDistrict},
+                   exclude=('parent_id', 'type_id')):
+        t = db.tables['struct']
+        res = db.conn.execute(t.select(t.c.id == struct_id)).fetchone()
+        map = {}
+        for (k,v) in res.items():
+            if k not in exclude:
+                map[mapping.get(k, k)] = bool(v) if '_b' in k else v
+        if res.parent_id:
+            map['parent'] = self.get_struct(res.parent_id)
+        s = class_map[res['type_id']](**map)
+        return s
 
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
@@ -185,6 +209,8 @@ db = DBHandler(year=2019, **get_db_settings())
 #     # print k, db.get_title(v)
 #     print db.get_member(v)
 
-for (k,v) in CLUB_IDS.items():
-    print db.get_club(v)
+# for (k,v) in CLUB_IDS.items():
+#     print db.get_club(v)
 
+print db.get_struct(5)
+print db.get_struct(9)
