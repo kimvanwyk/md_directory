@@ -1,6 +1,7 @@
 import ConfigParser
 from enum import Enum
 import operator
+from pprint import pprint
 
 import attr
 from sqlalchemy import create_engine, Table, MetaData, and_, or_, select
@@ -150,6 +151,12 @@ class DBHandler(object):
         r = Region(**map)
         return r
 
+    def get_region_zones(self, region_id):
+        t = db.tables['zone']
+        res = db.conn.execute(t.select(and_(t.c.region_id == region_id,
+                                            t.c.in_region_b == 1)).order_by(t.c.name)).fetchall()
+        return [self.get_zone(r.id) for r in res]
+
     def get_zone(self, zone_id, exclude=('struct_id', 'in_region_b', 'region_id')):
         (map, res) = self.__db_lookup(zone_id, 'zone', {}, exclude)
         map['district'] = self.get_struct(res['struct_id'])
@@ -162,6 +169,14 @@ class DBHandler(object):
             map['chair'] = self.get_member(res['member_id'])
         z = Zone(**map)
         return z
+
+    def get_zone_clubs(self, zone_id):
+        t = db.tables['clubzone']
+        res = db.conn.execute(t.select(and_(t.c.zone_id == zone_id,
+                                            t.c.year == self.year))).fetchall()
+        clubs = [self.get_club(r.club_id) for r in res]
+        clubs.sort(key=lambda x:x.name)
+        return clubs
 
     def get_struct(self, struct_id, mapping={'in_use_b': 'is_in_use'}, 
                    class_map={0: District, 1: MultipleDistrict},
@@ -244,8 +259,11 @@ db = DBHandler(year=2019, **get_db_settings())
 # print db.get_struct(5)
 # print db.get_struct(9)
 
-print db.get_region(3)
-print db.get_region(4)
+# print db.get_region(3)
+# print db.get_region(4)
 
-print db.get_zone(49)
-print db.get_zone(50)
+# print db.get_zone(49)
+# print db.get_zone(50)
+
+# pprint(db.get_region_zones(4))
+pprint(db.get_zone_clubs(41))
