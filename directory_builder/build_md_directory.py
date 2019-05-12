@@ -115,6 +115,64 @@ class Member(object):
         else:
             self.club = ''
 
+def make_member_col(member, pad_with_blanks=False):
+    ''' Generate a list of lines of member data to go into a table. Expects a Member object
+    Optional parameter pad_with_blanks specifies whether to insert extra blank spaces,
+    for use in tables of more than one member, so addresses, phone numbers and emails line up.
+    If member object is None, return a suitable length list of blank lines
+'''
+    phs = ['home_ph', 'bus_ph', 'cell_ph', 'fax']
+
+    if member == None:
+        if not pad_with_blanks:
+            return []
+        else:
+            # Add blanks for all ph's, email, club, name
+            return [''] * (len(phs) + 3)
+
+    col = []
+    # Concat first name and last name and partner name in brackets, if there is one
+    col.append('%s %s' % (member.first_name, member.last_name))
+    if member.partner:
+        col[-1] += (' (%s)' % member.partner.strip())
+    # add indicator for deceased member
+    if member.deceased_b:
+        col[-1] += r'\footnotemark[2]'
+        if pad_with_blanks:
+            # Add blanks for add's, all ph's, email, club, po_code
+            col.extend([''] * (3 + len(phs)))
+        return col
+
+    # check if member resigned. If so, indicate this and return
+    if member.resigned_b:
+        col.append('Resigned')
+        # pad the other columns if needed
+        if pad_with_blanks:
+            # Add blanks for all but one ph, email, club
+            col.extend([''] * (1 + len(phs)))
+        return col
+
+    for p in phs:
+        num = getattr(member, p)
+        if num:
+            # Append a phone number, using the first initial of its attr name as a label
+            col.append('\\textbf{%s}: %s' % (p[:1].upper(), num))
+        elif pad_with_blanks:
+            # Add a blank as no num was used
+            col.append('')
+
+    if member.email:
+        col.append(r'%s' % markup_email(member.email))
+    elif pad_with_blanks:
+        col.append('')
+
+    if member.club:
+        col.append(r'Home Club: %s' % (member.club))
+    elif pad_with_blanks:
+        col.append('')
+
+    return col
+
 def make_member_col_db_handler(member_dict, pad_with_blanks=False):
     ''' Generate a list of lines of member data to go into a table. Expects a member dict
     Optional parameter pad_with_blanks specifies whether to insert extra blank spaces,
@@ -384,6 +442,42 @@ def get_past_officers(office, struct_id, other_districts, footnote=False, prev_s
         footnote = True
     return (ret, footnote)
 
+def get_officers(offices, struct_id):
+    ''' Return a list of .tex  lines holding tables of struct officers, from the list of (office id, use_child) in 'offices'
+    'use_child', if true, looks up all the off id's in the children of the struct instead of using the struct itself
+    
+    '''
+    ret = []
+    offs = []
+    t = db.tables['md_directory_struct']
+    for o,use_child in offices:
+        if use_child:
+            children = db.conn.execute(select([t.c.id, t.c.name], 
+                                              and_(t.c.parent_id == struct_id,
+                                                   t.c.in_use_b == 1))).fetchall()
+            for c in children:
+                offs.append((o, c[0], ', District %s' % c[1]))
+        else:
+            offs.append((o,struct_id, ''))
+
+    for o,i,text in offs:
+        o, title, ip = get_title(o)
+        year = cur_year
+        # for ip, look up details of office holder from previous year
+        if ip:
+            year = cur_year - 1
+        t = db.tables['md_directory_structofficer']
+        sel = select([t], and_(t.c.year == year, t.c.struct_id == i, t.c.office_id == o))
+        officer = db.conn.execute(sel).fetchone()
+        if officer:
+            # officer acquired, create a latex table
+            m = get_member(officer.member_id, officer.email)
+            if m and not m.deceased_b and not m.resigned_b: 
+                ret.append('')
+                ret.append(r'\subsection{%s%s}' % (title, text))
+                ret.extend(make_latex_table([make_member_col(m)]))
+    return ret
+
 def get_officers_db_handler(offices, struct_id):
     ''' Return a list of .tex  lines holding tables of struct officers, from the list of (office id, use_child) in 'offices'
     'use_child', if true, looks up all the off id's in the children of the struct instead of using the struct itself
@@ -415,7 +509,7 @@ def get_officers_db_handler(offices, struct_id):
             if m and not m.deceased_b and not m.resigned_b: 
                 ret.append('')
                 ret.append(r'\subsection{%s%s}' % (title, text))
-                ret.extend(make_latex_table([make_member_col_db_handler(m)]))
+                ret.extend(make_latex_table([make_member_col(m)]))
     return ret
 
 def get_chairs(struct_id):
@@ -430,7 +524,7 @@ def get_chairs(struct_id):
         if m and not m.deceased_b and not m.resigned_b:
             ret.append('')
             ret.append(r'\subsection{%s}' % S(chair.office))
-            cols = [make_member_col_db_handler(m)]
+            cols = [make_member_col(m)]
             if chair.committee_members:
                 cols[0].extend(['\n', r'\textbf{Committee Members:}'])
                 cols[0].extend([i.strip() for i in sanitize(chair.committee_members).split(',')])
@@ -555,7 +649,7 @@ def get_merls(dist_id):
     for merl in merls:
         m = get_member(merl.member_id)
         if m: 
-            ret.extend(make_latex_table([make_member_col_db_handler(m)]))
+            ret.extend(make_latex_table([make_member_col(m)]))
             ret.append(r'\\')
     if merls:
         ret.append(r'\end{multicols}')
@@ -605,7 +699,7 @@ def get_regions_and_zones(struct_id):
         # Add zones and chairperson to a latex table
         out.append(r'\subsection{%s}' % (r[0]))
         header = [r'\textbf{Zones}', r'\textbf{Chairperson}']
-        out.extend(make_latex_table([names, make_member_col_db_handler(get_member(r[1], r[2]),False)], ['X', '|', 'X'], header))
+        out.extend(make_latex_table([names, make_member_col(get_member(r[1], r[2]),False)], ['X', '|', 'X'], header))
 
     ret = []
     # Regions handled, if there were any. Output the region listings.
@@ -662,7 +756,7 @@ def get_regions_and_zones(struct_id):
         # Add clubs and chairperson to a latex table
         out.append(r'\subsection{%s}' % (z[0]))
         header = [r'\textbf{Clubs}', r'\textbf{Chairperson}']
-        out.extend(make_latex_table([names, make_member_col_db_handler(get_member(z[1], z[2]),False)], ['X', '|', 'X'], header))
+        out.extend(make_latex_table([names, make_member_col(get_member(z[1], z[2]),False)], ['X', '|', 'X'], header))
 
     # Zones handled, if there were any. Output the zone listings.
     if zones:
@@ -748,7 +842,7 @@ def get_club_info(struct_id):
             # add club officers, if there were any. Use padding so they all line up
             ret.append(r'\noindent')
             cols = [r'>{\raggedright}X' for i in club_officers[:-1]] + ['X']
-            ret.extend(make_latex_table([make_member_col_db_handler(i[1], True) for i in club_officers], cols, [off[0] for off in club_officers]))
+            ret.extend(make_latex_table([make_member_col(i[1], True) for i in club_officers], cols, [off[0] for off in club_officers]))
         else:
             ret.append(r'No club officer information available\\' )
         if c.website:
@@ -817,7 +911,7 @@ def get_chap_and_officers(struct, org_name, board_title, offices):
     ret.append(r'\setlength{\columnseprule}{2pt}')
     ret.append(r'\begin{multicols}{2}[\section{%s %s}]' % (org_name, board_title))
 #    ret.append(r'\raggedright')
-    ret.extend(get_officers_db_handler(offices, struct['id']))
+    ret.extend(get_officers(offices, struct['id']))
     ret.extend(get_chairs(struct['id']))
     ret.append(r'\end{multicols}')
 #    Set website to the appropriate md or dist website attr
