@@ -65,6 +65,23 @@ class Zone(Region):
     region = attr.ib(default=None)
 
 @attr.s
+class Club(object):
+    id = attr.ib(factory=int)
+    club_type = attr.ib(default=ClubType.lions)
+    struct = attr.ib(default=None)
+    prev_struct = attr.ib(default=None)
+    name = attr.ib(default=None)
+    meeting_time = attr.ib(default=None)
+    meeting_address = attr.ib(factory=list)
+    postal_address = attr.ib(factory=list)
+    charter_year = attr.ib(factory=int)
+    website = attr.ib(default=None)
+    is_suspended = attr.ib(default=False)
+    zone = attr.ib(default=None)
+    is_closed = attr.ib(default=False)
+    officers = attr.ib(factory=list)
+
+@attr.s
 class Member(object):
     id = attr.ib(factory=int)
     first_name = attr.ib(default=None)
@@ -82,21 +99,6 @@ class Member(object):
     club = attr.ib(default=None)
     title = attr.ib(default=None)
 
-@attr.s
-class Club(object):
-    id = attr.ib(factory=int)
-    club_type = attr.ib(default=ClubType.lions)
-    struct = attr.ib(default=None)
-    prev_struct = attr.ib(default=None)
-    name = attr.ib(default=None)
-    meeting_time = attr.ib(default=None)
-    meeting_address = attr.ib(factory=list)
-    postal_address = attr.ib(factory=list)
-    charter_year = attr.ib(factory=int)
-    website = attr.ib(default=None)
-    is_suspended = attr.ib(default=False)
-    zone = attr.ib(default=None)
-    is_closed = attr.ib(default=False)
 
 @attr.s
 class Officer(object):
@@ -138,9 +140,12 @@ class DBHandler(object):
         return (map, res)
 
     def get_member(self, member_id, mapping={'deceased_b': 'is_deceased', 'resigned_b': 'is_resigned',
-                                             'partner_lion_b': 'is_partner_lion', 'club_id': 'club'}):
+                                             'partner_lion_b': 'is_partner_lion', 'club_id': 'club'},
+                   email=None):
         (map, res) = self.__db_lookup(member_id, 'member', mapping)
         map['title'] = self.get_title(member_id)
+        if email:
+            map['email'] = email
         m = Member(**map)
         return m
 
@@ -164,7 +169,7 @@ class DBHandler(object):
         res = db.conn.execute(t.select(and_(t.c.parent_id == res['id'],
                                             t.c.year == self.year))).fetchone()
         if res:
-            map['chair'] = self.get_member(res['member_id'])
+            map['chair'] = self.get_member(res['member_id'], email=res['email'])
         r = Region(**map)
         return r
 
@@ -183,7 +188,7 @@ class DBHandler(object):
         res = db.conn.execute(t.select(and_(t.c.parent_id == res['id'],
                                             t.c.year == self.year))).fetchone()
         if res:
-            map['chair'] = self.get_member(res['member_id'])
+            map['chair'] = self.get_member(res['member_id'], email=res['email'])
         z = Zone(**map)
         return z
 
@@ -212,7 +217,7 @@ class DBHandler(object):
                                                    ts.c.year == year,
                                                    ts.c.office_id == office_id))).fetchone()
             if res:
-                map['officers'].append(Officer(title, self.get_member(res.member_id)))
+                map['officers'].append(Officer(title, self.get_member(res.member_id, email=res.email)))
         s = cls(**map)
         return s
 
@@ -285,13 +290,13 @@ db = DBHandler(year=2019, **get_db_settings())
 # for (k,v) in CLUB_IDS.items():
 #     print db.get_club(v)
 
-print db.get_struct(5)
-print db.get_struct(9)
+# print db.get_struct(5)
+# print db.get_struct(9)
 
-# print db.get_region(3)
+print db.get_region(3)
 # print db.get_region(4)
 
-# print db.get_zone(49)
+print db.get_zone(49)
 # print db.get_zone(50)
 
 # pprint(db.get_region_zones(4))
