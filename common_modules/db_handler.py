@@ -41,6 +41,28 @@ class ClubType(Enum):
     lioness = 4
 
 @attr.s
+class MultipleDistrict(object):
+    id = attr.ib(factory=int)
+    name = attr.ib(default=None) 
+    website = attr.ib(default=None) 
+    is_in_use = attr.ib(default=False)
+
+@attr.s
+class District(MultipleDistrict):
+    parent = attr.ib(default=None) 
+
+@attr.s
+class Region(object):
+    id = attr.ib(factory=int)
+    name = attr.ib(default=None) 
+    chair = attr.ib(default=None) 
+    district = attr.ib(default=None)
+
+@attr.s
+class Zone(Region):
+    region = attr.ib(default=None)
+
+@attr.s
 class Member(object):
     id = attr.ib(factory=int)
     first_name = attr.ib(default=None)
@@ -73,17 +95,6 @@ class Club(object):
     is_suspended = attr.ib(default=False)
     zone = attr.ib(default=None)
     is_closed = attr.ib(default=False)
-
-@attr.s
-class MultipleDistrict(object):
-    id = attr.ib(factory=int)
-    name = attr.ib(default=None) 
-    website = attr.ib(default=None) 
-    is_in_use = attr.ib(default=False)
-
-@attr.s
-class District(MultipleDistrict):
-    parent = attr.ib(default=None) 
 
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
@@ -127,6 +138,30 @@ class DBHandler(object):
             map['postal_address'].append(res['po_code'])
         c = Club(**map)
         return c
+
+    def get_region(self, region_id, exclude=('struct_id',)):
+        (map, res) = self.__db_lookup(region_id, 'region', {}, exclude)
+        map['district'] = self.get_struct(res['struct_id'])
+        t = db.tables['regionchair']
+        res = db.conn.execute(t.select(and_(t.c.parent_id == res['id'],
+                                            t.c.year == self.year))).fetchone()
+        if res:
+            map['chair'] = self.get_member(res['member_id'])
+        r = Region(**map)
+        return r
+
+    def get_zone(self, zone_id, exclude=('struct_id', 'in_region_b', 'region_id')):
+        (map, res) = self.__db_lookup(zone_id, 'zone', {}, exclude)
+        map['district'] = self.get_struct(res['struct_id'])
+        if res['in_region_b']:
+            map['region'] = self.get_region(res['region_id'])
+        t = db.tables['zonechair']
+        res = db.conn.execute(t.select(and_(t.c.parent_id == res['id'],
+                                            t.c.year == self.year))).fetchone()
+        if res:
+            map['chair'] = self.get_member(res['member_id'])
+        z = Zone(**map)
+        return z
 
     def get_struct(self, struct_id, mapping={'in_use_b': 'is_in_use'}, 
                    class_map={0: District, 1: MultipleDistrict},
@@ -200,11 +235,17 @@ def get_db_settings(fn='db_settings.ini', sec='DB'):
     return settings
 
 db = DBHandler(year=2019, **get_db_settings())
-for (k,v) in MEMBER_IDS.items():
-    print db.get_member(v)
+# for (k,v) in MEMBER_IDS.items():
+#     print db.get_member(v)
 
-for (k,v) in CLUB_IDS.items():
-    print db.get_club(v)
+# for (k,v) in CLUB_IDS.items():
+#     print db.get_club(v)
 
-print db.get_struct(5)
-print db.get_struct(9)
+# print db.get_struct(5)
+# print db.get_struct(9)
+
+print db.get_region(3)
+print db.get_region(4)
+
+print db.get_zone(49)
+print db.get_zone(50)
