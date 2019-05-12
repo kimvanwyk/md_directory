@@ -47,6 +47,7 @@ class MultipleDistrict(object):
     name = attr.ib(default=None) 
     website = attr.ib(default=None) 
     is_in_use = attr.ib(default=False)
+    officers = attr.ib(factory=list)
 
 @attr.s
 class District(MultipleDistrict):
@@ -97,6 +98,11 @@ class Club(object):
     zone = attr.ib(default=None)
     is_closed = attr.ib(default=False)
 
+@attr.s
+class Officer(object):
+    title = attr.ib(default=None)
+    member = attr.ib(default=None)
+
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
         if not year:
@@ -111,8 +117,19 @@ class DBHandler(object):
         for t in tables:
             self.tables[t.split(TABLE_PREFIX)[-1].strip('_')] = Table(t, metadata, autoload=True, schema=schema)
 
+        self.officer_titles = {}
+        to = self.tables['officertitle']
+        res = self.conn.execute(to.select()).fetchall()
+        for r in res:
+            year = self.year
+            office_id = r.id
+            if r.ip_id:
+                year -= 1
+                office_id = r.ip_id
+            self.officer_titles[r.id] = (r.title, office_id, year)
+
     def __db_lookup(self, lookup_id, table, mapping, exclude=[]):
-        t = db.tables[table]
+        t = self.tables[table]
         res = db.conn.execute(t.select(t.c.id == lookup_id)).fetchone()
         map = {}
         for (k,v) in res.items():
@@ -143,7 +160,7 @@ class DBHandler(object):
     def get_region(self, region_id, exclude=('struct_id',)):
         (map, res) = self.__db_lookup(region_id, 'region', {}, exclude)
         map['district'] = self.get_struct(res['struct_id'])
-        t = db.tables['regionchair']
+        t = self.tables['regionchair']
         res = db.conn.execute(t.select(and_(t.c.parent_id == res['id'],
                                             t.c.year == self.year))).fetchone()
         if res:
@@ -152,7 +169,7 @@ class DBHandler(object):
         return r
 
     def get_region_zones(self, region_id):
-        t = db.tables['zone']
+        t = self.tables['zone']
         res = db.conn.execute(t.select(and_(t.c.region_id == region_id,
                                             t.c.in_region_b == 1)).order_by(t.c.name)).fetchall()
         return [self.get_zone(r.id) for r in res]
@@ -162,7 +179,7 @@ class DBHandler(object):
         map['district'] = self.get_struct(res['struct_id'])
         if res['in_region_b']:
             map['region'] = self.get_region(res['region_id'])
-        t = db.tables['zonechair']
+        t = self.tables['zonechair']
         res = db.conn.execute(t.select(and_(t.c.parent_id == res['id'],
                                             t.c.year == self.year))).fetchone()
         if res:
@@ -171,7 +188,7 @@ class DBHandler(object):
         return z
 
     def get_zone_clubs(self, zone_id):
-        t = db.tables['clubzone']
+        t = self.tables['clubzone']
         res = db.conn.execute(t.select(and_(t.c.zone_id == zone_id,
                                             t.c.year == self.year))).fetchall()
         clubs = [self.get_club(r.club_id) for r in res]
@@ -179,12 +196,24 @@ class DBHandler(object):
         return clubs
 
     def get_struct(self, struct_id, mapping={'in_use_b': 'is_in_use'}, 
-                   class_map={0: District, 1: MultipleDistrict},
+                   class_map={0: (District, (5,6,7,8,9,10)), 
+                              1: (MultipleDistrict, (11,12,13,14,15))},
                    exclude=('parent_id', 'type_id')):
         (map, res) = self.__db_lookup(struct_id, 'struct', mapping, exclude)
         if res.parent_id:
             map['parent'] = self.get_struct(res.parent_id)
-        s = class_map[res['type_id']](**map)
+        (cls, office_ids) = class_map[res['type_id']]
+
+        ts = self.tables['structofficer']
+        map['officers'] = []
+        for office_id_index in office_ids:
+            (title, office_id, year) = self.officer_titles[office_id_index]
+            res = self.conn.execute(ts.select(and_(ts.c.struct_id == struct_id,
+                                                   ts.c.year == year,
+                                                   ts.c.office_id == office_id))).fetchone()
+            if res:
+                map['officers'].append(Officer(title, self.get_member(res.member_id)))
+        s = cls(**map)
         return s
 
     def get_title(self, member_id, 
@@ -201,7 +230,7 @@ class DBHandler(object):
         '''
         def search_officers(member_id, table, mapping):
             title = None
-            t = db.tables[table]
+            t = self.tables[table]
             res = db.conn.execute(t.select(t.c.member_id == member_id)).fetchall()
             index = 100
             for (n,(office_id, addition, op, ttl)) in enumerate(mapping):
@@ -216,7 +245,7 @@ class DBHandler(object):
         title = search_officers(member_id, 'structofficer', struct_officers)
         if not title:
             for (table, ttl) in (('regionchair', 'RC'), ('zonechair', 'ZC')):
-                t = db.tables[table]
+                t = self.tables[table]
                 res = db.conn.execute(t.select(and_(t.c.member_id == member_id,
                                                     t.c.year == self.year))).fetchall()
                 if res:
@@ -224,9 +253,9 @@ class DBHandler(object):
                     break
         if not title:
             for (type_id, ttl) in ((1, 'MDC'), (0, 'DC')):
-                t = db.tables['struct']
+                t = self.tables['struct']
                 structs = db.conn.execute(t.select(t.c.type_id == type_id)).fetchall()
-                t = db.tables['structchair']
+                t = self.tables['structchair']
                 for struct in structs:
                     res = db.conn.execute(t.select(and_(t.c.member_id == member_id,
                                                         t.c.year == self.year,
@@ -256,8 +285,8 @@ db = DBHandler(year=2019, **get_db_settings())
 # for (k,v) in CLUB_IDS.items():
 #     print db.get_club(v)
 
-# print db.get_struct(5)
-# print db.get_struct(9)
+print db.get_struct(5)
+print db.get_struct(9)
 
 # print db.get_region(3)
 # print db.get_region(4)
@@ -266,4 +295,4 @@ db = DBHandler(year=2019, **get_db_settings())
 # print db.get_zone(50)
 
 # pprint(db.get_region_zones(4))
-pprint(db.get_zone_clubs(41))
+# pprint(db.get_zone_clubs(41))
