@@ -99,11 +99,11 @@ class Member(object):
     club = attr.ib(default=None)
     title = attr.ib(default=None)
 
-
 @attr.s
 class Officer(object):
     title = attr.ib(default=None)
     member = attr.ib(default=None)
+    committee = attr.ib(factory=list)
 
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
@@ -237,6 +237,12 @@ class DBHandler(object):
                                                    ts.c.office_id == office_id))).fetchone()
             if res:
                 map['officers'].append(Officer(title, self.get_member(res.member_id, email=res.email)))
+        t = self.tables['structchair']
+        res = self.conn.execute(t.select(and_(t.c.struct_id == struct_id,
+                                              t.c.year == year)).order_by(t.c.office)).fetchall()
+        if res:
+            map['officers'].extend([Officer(r.office, self.get_member(r.member_id, email=r.email), 
+                                            committee=r.committee_members.split(',') if r.committee_members else []) for r in res])
         s = cls(**map)
         return s
 
@@ -320,7 +326,7 @@ db = DBHandler(year=2019, **get_db_settings())
 #     print db.get_club(v)
 
 # print db.get_struct(5)
-# print db.get_struct(9)
+print db.get_struct(9)
 
 # print db.get_region(3)
 # print db.get_region(4)
@@ -331,5 +337,5 @@ db = DBHandler(year=2019, **get_db_settings())
 # pprint(db.get_region_zones(4))
 # pprint(db.get_zone_clubs(41))
 
-pprint([r.name for r in db.get_struct_regions(9)])
-pprint([z.name for z in db.get_struct_zones(9)])
+# pprint([r.name for r in db.get_struct_regions(9)])
+# pprint([z.name for z in db.get_struct_zones(9)])
