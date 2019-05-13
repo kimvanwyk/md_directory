@@ -1,3 +1,4 @@
+from collections import defaultdict
 import ConfigParser
 from enum import Enum
 import operator
@@ -109,8 +110,8 @@ class PastOfficer(object):
     member = attr.ib(default=None)
 
 @attr.s
-class PastDG(object):
-    previous_district = attr.ib(factory=int)
+class PastDG(PastOfficer):
+    previous_district = attr.ib(default=None)
 
 class DBHandler(object):
     def __init__(self, username, password, schema, host, port, db_type, year=None):
@@ -136,6 +137,12 @@ class DBHandler(object):
                 year -= 1
                 office_id = r.ip_id
             self.officer_titles[r.id] = (r.title, office_id, year)
+
+        self.merged_structs = defaultdict(list)
+        t = self.tables['structmerge']
+        res = self.conn.execute(t.select()).fetchall()
+        for r in res:
+            self.merged_structs[r.current_struct_id].append(r.previous_struct_id)
 
     def __db_lookup(self, lookup_id, table, mapping, exclude=[]):
         t = self.tables[table]
@@ -275,11 +282,20 @@ class DBHandler(object):
         res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
         return [self.get_zone(r.id) for r in res]
 
-    def get_past_struct_officers(self, struct_id, office_id):
-        t = self.tables['structofficer']
-        res = self.conn.execute(t.select(and_(t.c.struct_id == struct_id,
-                                              t.c.office_id == office_id)).order_by(t.c.year, t.c.end_month)).fetchall()
-        return [PastOfficer(r.year, r.end_month, self.get_member(r.member_id)) for r in res]
+    def get_past_struct_officers(self, struct_id, office_id, cls_map={11: PastOfficer, 5: PastDG}):
+        to = self.tables['structofficer']
+        ts = self.tables['struct']
+        res = self.conn.execute(select((to.c.year, to.c.end_month, to.c.member_id, ts.c.name, ts.c.in_use_b),
+                                       and_(to.c.struct_id.in_([struct_id] + self.merged_structs.get(struct_id, [])),
+                                            to.c.office_id == office_id,
+                                            to.c.year < self.year,
+                                            to.c.struct_id == ts.c.id)).order_by(to.c.year, to.c.end_month, ts.c.name)).fetchall()
+        offs = []
+        for r in res:
+            offs.append(cls_map[office_id](r.year, r.end_month, self.get_member(r.member_id)))
+            if r.in_use_b == 0:
+                offs[-1].previous_district = r.name
+        return offs
 
     def get_past_ccs(self, struct_id):
         return self.get_past_struct_officers(struct_id, 11)
@@ -373,4 +389,4 @@ db = DBHandler(year=2019, **get_db_settings())
 # pprint([z.name for z in db.get_district_zones(9)])
 
 # pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_ccs(5)])
-pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(3)])
+pprint([(po.year, po.end_month, po.previous_district, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(9)])
