@@ -153,6 +153,11 @@ class DBHandler(object):
                 map[mapping.get(k, k)] = bool(v) if '_b' in k else v
         return (map, res)
 
+    def __get_district_child(self, struct_id, table, order_field, getter):
+        t = self.tables[table]
+        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(getattr(t.c, order_field))).fetchall()
+        return [getter(r.id) for r in res]
+
     def get_member(self, member_id, mapping={'deceased_b': 'is_deceased', 'resigned_b': 'is_resigned',
                                              'partner_lion_b': 'is_partner_lion', 'club_id': 'club'},
                    email=None):
@@ -268,19 +273,13 @@ class DBHandler(object):
         return s
 
     def get_district_clubs(self, struct_id):
-        t = self.tables['club']
-        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.name)).fetchall()
-        return [self.get_club(r.id) for r in res]
+        return self.__get_district_child(struct_id, 'club', 'name', self.get_club)
 
     def get_district_regions(self, struct_id):
-        t = self.tables['region']
-        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
-        return [self.get_region(r.id) for r in res]
+        return self.__get_district_child(struct_id, 'region', 'id', self.get_region)
 
     def get_district_zones(self, struct_id):
-        t = self.tables['zone']
-        res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(t.c.id)).fetchall()
-        return [self.get_zone(r.id) for r in res]
+        return self.__get_district_child(struct_id, 'zone', 'id', self.get_zone)
 
     def get_past_struct_officers(self, struct_id, office_id, cls_map={11: PastOfficer, 5: PastDG}):
         to = self.tables['structofficer']
@@ -384,9 +383,9 @@ db = DBHandler(year=2019, **get_db_settings())
 # pprint(db.get_region_zones(4))
 # pprint(db.get_zone_clubs(41))
 
-# pprint([(c.name, (c.zone.name, c.zone.region.name) if c.zone else 'No Zone') for c in db.get_district_clubs(9) if not c.is_closed])
-# pprint([r.name for r in db.get_district_regions(9)])
-# pprint([z.name for z in db.get_district_zones(9)])
+pprint([(c.name, (c.zone.name, c.zone.region.name) if c.zone else 'No Zone') for c in db.get_district_clubs(9) if not c.is_closed])
+pprint([r.name for r in db.get_district_regions(9)])
+pprint([z.name for z in db.get_district_zones(9)])
 
 # pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_ccs(5)])
-pprint([(po.year, po.end_month, po.previous_district, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(9)])
+# pprint([(po.year, po.end_month, po.previous_district, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(9)])
