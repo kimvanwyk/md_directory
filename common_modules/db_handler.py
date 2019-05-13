@@ -331,6 +331,10 @@ class DBHandler(object):
         s = cls(**map)
         return s
 
+    def get_md_districts(self, struct_id):
+        t = self.tables['struct']
+        return [self.get_struct(r.id) for r in db.conn.execute(t.select(and_(t.c.parent_id == struct_id, t.c.in_use_b == 1)).order_by(t.c.name)).fetchall()]
+
     def get_district_clubs(self, struct_id):
         return self.__get_district_child(struct_id, 'club', 'name', self.get_club)
 
@@ -385,15 +389,21 @@ def get_db_settings(fn='db_settings.ini', sec='DB'):
         settings[opt] = cp.get(sec, opt)
     return settings
 
-db = DBHandler(year=2019, **get_db_settings())
+def set_year(year):
+    db.year = year
+
+db = DBHandler(**get_db_settings())
+
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
 
 # for (k,v) in CLUB_IDS.items():
-#     print db.get_club(v)
+#     print db.get_club(v, include_officers=True)
 
 # print db.get_struct(5)
-# print db.get_struct(9)
+# print db.get_struct(9, include_officers=True)
+
+# pprint(db.get_md_districts(5))
 
 # print db.get_region(3)
 # print db.get_region(4)
@@ -411,5 +421,5 @@ db = DBHandler(year=2019, **get_db_settings())
 # pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_ccs(5)])
 # pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(9)])
 
-pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(9)])
-pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(10)])
+# pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(9)])
+# pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(10)])
