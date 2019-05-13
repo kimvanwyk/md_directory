@@ -146,9 +146,16 @@ class DBHandler(object):
         for r in res:
             self.merged_structs[r.current_struct_id].append(r.previous_struct_id)
 
+        self.struct_ids = {}
+        t = self.tables['struct']
+        res = self.conn.execute(t.select(t.c.in_use_b == 1)).fetchall()
+        for r in res:
+            s = self.get_struct(r.id)
+            self.struct_ids[s.name] = r.id
+
     def __db_lookup(self, lookup_id, table, mapping, exclude=[]):
         t = self.tables[table]
-        res = db.conn.execute(t.select(t.c.id == lookup_id)).fetchone()
+        res = self.conn.execute(t.select(t.c.id == lookup_id)).fetchone()
         map = {}
         for (k,v) in res.items():
             if k not in exclude:
@@ -159,6 +166,11 @@ class DBHandler(object):
         t = self.tables[table]
         res = db.conn.execute(t.select(t.c.struct_id == struct_id).order_by(getattr(t.c, order_field))).fetchall()
         return [getter(r.id) for r in res]
+
+    def get_struct_list(self):
+        k = self.struct_ids.keys()
+        k.sort()
+        return k
 
     def get_title(self, member_id, 
                   struct_officers = ((19, 0, operator.eq, "IP"),  (19, -1, operator.eq, "PIP"),  (21, 0, operator.eq, "ID"),  
@@ -326,14 +338,17 @@ class DBHandler(object):
             res = self.conn.execute(t.select(and_(t.c.struct_id == struct_id,
                                                   t.c.year == year)).order_by(t.c.office)).fetchall()
             if res:
-                map['officers'].extend([Officer(r.office, self.get_member(r.member_id, email=r.email), 
-                                                committee=r.committee_members.split(',') if r.committee_members else []) for r in res])
+                for r in res:
+                    if r.member_id:
+                        map['officers'].append(Officer(r.office, self.get_member(r.member_id, email=r.email), 
+                                                       committee=r.committee_members.split(',') if r.committee_members else []))
         s = cls(**map)
         return s
 
-    def get_md_districts(self, struct_id):
+    def get_md_districts(self, struct_id, include_officers=False):
         t = self.tables['struct']
-        return [self.get_struct(r.id) for r in db.conn.execute(t.select(and_(t.c.parent_id == struct_id, t.c.in_use_b == 1)).order_by(t.c.name)).fetchall()]
+        return [self.get_struct(r.id, include_officers=include_officers) for r in db.conn.execute(t.select(and_(t.c.parent_id == struct_id, 
+                                                                                                          t.c.in_use_b == 1)).order_by(t.c.name)).fetchall()]
 
     def get_district_clubs(self, struct_id):
         return self.__get_district_child(struct_id, 'club', 'name', self.get_club)
@@ -380,6 +395,19 @@ class DBHandler(object):
     def get_past_dgs(self, struct_id):
         return self.get_past_struct_officers(struct_id, 5)
 
+class Data(object):
+    def __init__(self, year, struct):
+        self.db = db
+        self.struct_id = self.db.struct_ids[struct]
+        self.db.year = year
+        self.struct = self.db.get_struct(self.struct_id, include_officers=True)
+        if type(self.struct) == MultipleDistrict:
+            self.md = True
+            self.districts = self.db.get_md_districts(self.struct_id, include_officers=True)
+        else:
+            self.md = False
+            self.districts = []
+            
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
     cp = ConfigParser.SafeConfigParser()
@@ -389,10 +417,15 @@ def get_db_settings(fn='db_settings.ini', sec='DB'):
         settings[opt] = cp.get(sec, opt)
     return settings
 
-def set_year(year):
-    db.year = year
+def get_struct_list():
+    return db.get_struct_list()
 
 db = DBHandler(**get_db_settings())
+
+data = Data(2019, get_struct_list()[2])
+print data.md
+print data.struct
+print data.districts
 
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
@@ -423,3 +456,4 @@ db = DBHandler(**get_db_settings())
 
 # pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(9)])
 # pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(10)])
+
