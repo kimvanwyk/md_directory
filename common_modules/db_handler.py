@@ -420,7 +420,7 @@ class Data(object):
     def next_district(self):
         if self.md:
             self.__district_index += 1
-            if self.__district_index == len(self.districts):
+            if self.__district_index >= len(self.districts):
                 return False
             self.district = self.districts[self.__district_index]
         return True
@@ -429,6 +429,14 @@ class Data(object):
         if self.md:
             self.district = None
             self.__district_index = -1
+
+    def get_past_ccs(self):
+        return self.db.get_past_ccs(self.struct_id)
+
+    def get_past_dgs(self):
+        if self.district:
+            return self.db.get_past_dgs(self.district.id)
+        return []
             
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
@@ -452,6 +460,10 @@ data.reset()
 print data.struct.officers[0].member.long_name
 while data.next_district():
     print data.district.officers[0].member.long_name
+pprint([(po.year, po.end_month, po.member.long_name) for po in data.get_past_ccs()])
+data.reset()
+data.next_district()
+pprint([(po.year, po.end_month, po.previous_district.name, po.member.long_name) for po in data.get_past_dgs()])
 
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
