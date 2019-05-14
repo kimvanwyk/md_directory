@@ -2,7 +2,6 @@ from collections import defaultdict
 import ConfigParser
 from enum import Enum
 import operator
-from pprint import pprint
 
 import attr
 from sqlalchemy import create_engine, Table, MetaData, and_, or_, select
@@ -11,27 +10,6 @@ from utilities import get_current_year
 
 HANDLE_EXC = True
 TABLE_PREFIX = 'md_directory'
-
-MEMBER_IDS = {'Kim': 2602128,
-       'Vicki': 2352224,
-       'Denis': 666898,
-       'Alistair': 903648,
-       'Avril': 4200750,
-       'Trevor': 709888,
-       'Phil': 2687992,
-       'Yolandi': 3762497,
-       'Barbara': 2680550,
-       'Jacqui': 1399208,
-       'Dave': 355357,
-       'Neville': 3478783,
-       'Beryl': 4040774,
-       'Lyn': 349981,
-       'Malcolm': 990112
-       }
-
-CLUB_IDS = {'North Durban': 27814,
-            'Benoni Lakes': 115092
-       }
 
 class ClubType(Enum):
     lions = 1
@@ -466,50 +444,4 @@ def get_struct_list():
     return db.get_struct_list()
 
 db = DBHandler(**get_db_settings())
-
-data = Data(2019, get_struct_list()[2])
-print data.struct.name
-while data.next_district():
-    print data.district.name
-data.reset()
-print data.struct.officers[0].member.long_name
-while data.next_district():
-    print data.district.officers[0].member.long_name
-pprint([(po.year, po.end_month, po.member.long_name) for po in data.get_past_ccs()][-5:])
-data.reset()
-data.next_district()
-pprint([(po.year, po.end_month, po.previous_district.name, po.member.long_name) for po in data.get_past_dgs()][-5:])
-data.reset()
-data.next_district()
-pprint([c.name for c in data.get_district_clubs()][-5:])
-
-# for (k,v) in MEMBER_IDS.items():
-#     print db.get_member(v)
-
-# for (k,v) in CLUB_IDS.items():
-#     print db.get_club(v, include_officers=True)
-
-# print db.get_struct(5)
-# print db.get_struct(9, include_officers=True)
-
-# pprint(db.get_md_districts(5))
-
-# print db.get_region(3)
-# print db.get_region(4)
-
-# print db.get_zone(49)
-# print db.get_zone(50)
-
-# pprint(db.get_region_zones(4))
-# pprint(db.get_zone_clubs(41))
-
-# pprint([(c.name, (c.zone.name, c.zone.region.name) if c.zone else 'No Zone') for c in db.get_district_clubs(9) if not c.is_closed])
-# pprint([r.name for r in db.get_district_regions(9)])
-# pprint([z.name for z in db.get_district_zones(9)])
-
-# pprint([(po.year, po.end_month, po.member.first_name, po.member.last_name) for po in db.get_past_ccs(5)])
-# pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_dgs(9)])
-
-# pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(9)])
-# pprint([(po.year, po.end_month, po.previous_district.name, po.member.first_name, po.member.last_name) for po in db.get_past_foreign_dgs(10)])
 
