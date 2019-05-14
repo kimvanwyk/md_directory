@@ -36,16 +36,42 @@ print data.struct.name
 while data.next_district():
     print data.district.name
 data.reset()
-print data.struct.officers[0].member.long_name
+
+offs = []
+for off in data.struct.officers:
+    if 'Council Chairperson' == off.title:
+        offs.append(off)
+        break
+dgs = []
+vdgs = []
 while data.next_district():
-    print data.district.officers[0].member.long_name
-pprint([(po.year, po.end_month, po.member.long_name) for po in data.get_past_ccs()][-10:])
-data.reset()
-data.next_district()
-pprint([(po.year, po.end_month, po.previous_district.name, po.member.long_name) for po in data.get_past_dgs()][-10:])
-data.reset()
-data.next_district()
-pprint([c.name for c in data.get_district_clubs()][-5:])
+    for off in data.district.officers:
+        if off.title == 'District Governor':
+            dgs.append(off)
+        if off.title == 'First Vice District Governor':
+            vdgs.append(off)
+offs.extend(dgs)
+offs.extend(vdgs)
+for off in data.struct.officers:
+    if 'Council Chairperson' != off.title:
+        offs.append(off)
+
+pprint([(o.title, o.member.long_name) for o in offs])
+
+
+# pprint([(o.title, o.member.long_name) for o in data.struct.officers])
+# while data.next_district():
+#     pprint([(o.title, o.member.long_name) for o in data.district.officers[:2]])
+
+
+
+# pprint([(po.year, po.end_month, po.member.long_name) for po in data.get_past_ccs()][-10:])
+# data.reset()
+# data.next_district()
+# pprint([(po.year, po.end_month, po.previous_district.name, po.member.long_name) for po in data.get_past_dgs()][-10:])
+# data.reset()
+# data.next_district()
+# pprint([c.name for c in data.get_district_clubs()][-5:])
 
 ### Tests for the db class
 
