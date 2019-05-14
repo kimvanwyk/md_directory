@@ -99,6 +99,12 @@ class Member(object):
     club = attr.ib(default=None)
     title = attr.ib(default=None)
 
+    def __attrs_post_init__(self):
+        self.name = "%s %s" % (self.first_name, self.last_name)
+        if self.partner:
+            self.long_name = "%s (%s)" % (self.name, self.partner)
+        else:
+            self.long_name = self.name
 @attr.s
 class Officer(object):
     title = attr.ib(default=None)
@@ -443,8 +449,9 @@ print data.struct.name
 while data.next_district():
     print data.district.name
 data.reset()
+print data.struct.officers[0].member.long_name
 while data.next_district():
-    print data.district.officers[0].member.last_name
+    print data.district.officers[0].member.long_name
 
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
