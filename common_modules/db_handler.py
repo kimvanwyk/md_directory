@@ -401,12 +401,28 @@ class Data(object):
         self.struct_id = self.db.struct_ids[struct]
         self.db.year = year
         self.struct = self.db.get_struct(self.struct_id, include_officers=True)
+        self.__district_index = -1
         if type(self.struct) == MultipleDistrict:
             self.md = True
             self.districts = self.db.get_md_districts(self.struct_id, include_officers=True)
+            self.district = None
         else:
             self.md = False
             self.districts = []
+            self.district = self.struct
+
+    def next_district(self):
+        if self.md:
+            self.__district_index += 1
+            if self.__district_index == len(self.districts):
+                return False
+            self.district = self.districts[self.__district_index]
+        return True
+        
+    def reset(self):
+        if self.md:
+            self.district = None
+            self.__district_index = -1
             
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
@@ -423,9 +439,12 @@ def get_struct_list():
 db = DBHandler(**get_db_settings())
 
 data = Data(2019, get_struct_list()[2])
-print data.md
-print data.struct
-print data.districts
+print data.struct.name
+while data.next_district():
+    print data.district.name
+data.reset()
+while data.next_district():
+    print data.district.officers[0].member.last_name
 
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
