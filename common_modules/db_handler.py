@@ -437,6 +437,21 @@ class Data(object):
         if self.district:
             return self.db.get_past_dgs(self.district.id)
         return []
+
+    def get_district_clubs(self):
+        if self.district:
+            return self.db.get_district_clubs(self.district.id)
+        return []
+
+    def get_district_regions(self):
+        if self.district:
+            return self.db.get_district_regions(self.district.id)
+        return [] 
+
+    def get_district_zones(self):
+        if self.district:
+            return self.db.get_district_zones(self.district.id)
+        return []
             
 def get_db_settings(fn='db_settings.ini', sec='DB'):
     settings = {}
@@ -460,10 +475,13 @@ data.reset()
 print data.struct.officers[0].member.long_name
 while data.next_district():
     print data.district.officers[0].member.long_name
-pprint([(po.year, po.end_month, po.member.long_name) for po in data.get_past_ccs()])
+pprint([(po.year, po.end_month, po.member.long_name) for po in data.get_past_ccs()][-5:])
 data.reset()
 data.next_district()
-pprint([(po.year, po.end_month, po.previous_district.name, po.member.long_name) for po in data.get_past_dgs()])
+pprint([(po.year, po.end_month, po.previous_district.name, po.member.long_name) for po in data.get_past_dgs()][-5:])
+data.reset()
+data.next_district()
+pprint([c.name for c in data.get_district_clubs()][-5:])
 
 # for (k,v) in MEMBER_IDS.items():
 #     print db.get_member(v)
