@@ -335,7 +335,24 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10552 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=10836 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `md_directory_clubofficer_email`
+--
+
+DROP TABLE IF EXISTS `md_directory_clubofficer_email`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `md_directory_clubofficer_email` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `club_id` int(11) NOT NULL,
+  `email` varchar(200) NOT NULL,
+  `office_id` smallint(6) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `club_id` (`club_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -394,7 +411,7 @@ CREATE TABLE `md_directory_clubzone` (
   `zone_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `club_id_2` (`club_id`,`zone_id`,`year`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=244 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=575 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -442,7 +459,7 @@ CREATE TABLE `md_directory_eventattendance` (
   `member_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `md_directory_eventattendance_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=271 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=272 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -610,7 +627,7 @@ CREATE TABLE `md_directory_region` (
   `struct_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `mddir_region_408cafa9` (`struct_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -629,7 +646,7 @@ CREATE TABLE `md_directory_regionchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_regionchair_9574fce` (`parent_id`),
   KEY `mddir_regionchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=41 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=52 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -670,7 +687,7 @@ CREATE TABLE `md_directory_structchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1023 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1078 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -707,7 +724,7 @@ CREATE TABLE `md_directory_structofficer` (
   KEY `mddir_structofficer_408cafa9` (`struct_id`),
   KEY `mddir_structofficer_56e38b98` (`member_id`),
   KEY `mddir_structofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=514 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=528 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -761,7 +778,7 @@ CREATE TABLE `md_directory_zonechair` (
   KEY `mddir_zonechair_2957a812` (`parent_id`),
   KEY `mddir_zonechair_56e38b98` (`member_id`),
   KEY `md_directory_zonechair_dc37fb91` (`assistant_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=304 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=327 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -789,4 +806,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-07-18 10:30:25
+-- Dump completed on 2020-07-05 19:35:35
