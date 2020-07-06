@@ -335,7 +335,7 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10836 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=11003 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -411,7 +411,7 @@ CREATE TABLE `md_directory_clubzone` (
   `zone_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `club_id_2` (`club_id`,`zone_id`,`year`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=575 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=637 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -806,4 +806,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-07-05 19:35:35
+-- Dump completed on 2020-07-06 19:27:29
