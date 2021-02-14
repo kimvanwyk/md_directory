@@ -6,7 +6,7 @@ name = "pypi"
 [dev-packages]
 
 [packages]
-Django = "==1.5.1"
+Django = "==1.11.29"
 SQLAlchemy = "==0.9.8"
 south = "==0.8.1"
 # mysql-python = "*"
