@@ -411,7 +411,7 @@ CREATE TABLE `md_directory_clubzone` (
   `zone_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `club_id_2` (`club_id`,`zone_id`,`year`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=766 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=829 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -646,7 +646,7 @@ CREATE TABLE `md_directory_regionchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_regionchair_9574fce` (`parent_id`),
   KEY `mddir_regionchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=57 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=62 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -687,7 +687,7 @@ CREATE TABLE `md_directory_structchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1095 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1133 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -724,7 +724,7 @@ CREATE TABLE `md_directory_structofficer` (
   KEY `mddir_structofficer_408cafa9` (`struct_id`),
   KEY `mddir_structofficer_56e38b98` (`member_id`),
   KEY `mddir_structofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=534 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=543 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -778,7 +778,7 @@ CREATE TABLE `md_directory_zonechair` (
   KEY `mddir_zonechair_2957a812` (`parent_id`),
   KEY `mddir_zonechair_56e38b98` (`member_id`),
   KEY `md_directory_zonechair_dc37fb91` (`assistant_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=338 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=349 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -806,4 +806,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-22 15:49:12
+-- Dump completed on 2021-05-23 19:16:36
