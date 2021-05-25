@@ -687,7 +687,7 @@ CREATE TABLE `md_directory_structchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1133 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1134 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -806,4 +806,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-24  9:43:15
+-- Dump completed on 2021-05-25  9:57:47
