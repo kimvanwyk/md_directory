@@ -283,6 +283,7 @@ CREATE TABLE `md_directory_club` (
   `postal5` varchar(200) NOT NULL,
   `charter_year` int(11) DEFAULT NULL,
   `website` varchar(200) NOT NULL,
+  `facebook` varchar(200) NOT NULL,
   `suspended_b` tinyint(1) NOT NULL,
   `zone_id` int(11) NOT NULL,
   `closed_b` tinyint(1) NOT NULL,
@@ -806,4 +807,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-08-06 12:23:03
+-- Dump completed on 2021-08-07 16:25:42
