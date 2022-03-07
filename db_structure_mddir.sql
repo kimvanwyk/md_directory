@@ -336,7 +336,7 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=12370 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=12371 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -688,7 +688,7 @@ CREATE TABLE `md_directory_structchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1134 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1135 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -807,4 +807,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-09-17 21:09:50
+-- Dump completed on 2022-03-07 19:29:31
