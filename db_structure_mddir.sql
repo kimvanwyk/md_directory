@@ -222,6 +222,25 @@ CREATE TABLE `django_site` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Temporary table structure for view `md_club_officer_contact_details`
+--
+
+DROP TABLE IF EXISTS `md_club_officer_contact_details`;
+/*!50001 DROP VIEW IF EXISTS `md_club_officer_contact_details`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `md_club_officer_contact_details` AS SELECT 
+ 1 AS `district`,
+ 1 AS `club_name`,
+ 1 AS `club_type`,
+ 1 AS `first_name`,
+ 1 AS `last_name`,
+ 1 AS `cell`,
+ 1 AS `email`,
+ 1 AS `office`*/;
+SET character_set_client = @saved_cs_client;
+
+--
 -- Table structure for table `md_directory_brightsightoffice`
 --
 
@@ -336,7 +355,7 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=16813 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=16816 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -412,7 +431,7 @@ CREATE TABLE `md_directory_clubzone` (
   `zone_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `club_id_2` (`club_id`,`zone_id`,`year`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=969 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=970 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -667,7 +686,7 @@ CREATE TABLE `md_directory_struct` (
   PRIMARY KEY (`id`),
   KEY `md_directory_struct_777d41c8` (`type_id`),
   KEY `md_directory_struct_63f17a16` (`parent_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -688,7 +707,7 @@ CREATE TABLE `md_directory_structchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1192 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1193 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -797,6 +816,30 @@ CREATE TABLE `south_migrationhistory` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=23 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Current Database: `md_directory`
+--
+
+USE `md_directory`;
+
+--
+-- Final view structure for view `md_club_officer_contact_details`
+--
+
+/*!50001 DROP VIEW IF EXISTS `md_club_officer_contact_details`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`%` SQL SECURITY DEFINER */
+/*!50001 VIEW `md_club_officer_contact_details` AS select `s`.`name` AS `district`,`c`.`name` AS `club_name`,`ct`.`type` AS `club_type`,`m`.`first_name` AS `first_name`,`m`.`last_name` AS `last_name`,`m`.`cell_ph` AS `cell`,if((`co`.`email` = ''),`m`.`email`,`co`.`email`) AS `email`,`ot`.`title` AS `office` from (((((`md_directory_clubofficer` `co` join `md_directory_club` `c`) join `md_directory_officertitle` `ot`) join `md_directory_clubtype` `ct`) join `md_directory_member` `m`) join `md_directory_struct` `s`) where ((`co`.`club_id` = `c`.`id`) and (`co`.`office_id` = `ot`.`id`) and (`c`.`type` = `ct`.`id`) and (`co`.`year` = 2022) and (`co`.`member_id` = `m`.`id`) and (`c`.`struct_id` = `s`.`id`) and (`co`.`office_id` in (1,2)) and (`c`.`closed_b` = 0)) order by `s`.`name`,`c`.`name`,`co`.`office_id` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -807,4 +850,4 @@ CREATE TABLE `south_migrationhistory` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-11 19:41:33
+-- Dump completed on 2022-09-20  8:22:10
