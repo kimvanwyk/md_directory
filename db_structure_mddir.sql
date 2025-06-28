@@ -355,7 +355,7 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=16819 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=18941 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -431,7 +431,7 @@ CREATE TABLE `md_directory_clubzone` (
   `zone_id` int NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `club_id_2` (`club_id`,`zone_id`,`year`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=970 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1254 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -666,7 +666,7 @@ CREATE TABLE `md_directory_regionchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_regionchair_9574fce` (`parent_id`),
   KEY `mddir_regionchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=73 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=93 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -707,7 +707,7 @@ CREATE TABLE `md_directory_structchair` (
   PRIMARY KEY (`id`),
   KEY `mddir_structchair_408cafa9` (`struct_id`),
   KEY `mddir_structchair_56e38b98` (`member_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1193 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=1308 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -744,7 +744,7 @@ CREATE TABLE `md_directory_structofficer` (
   KEY `mddir_structofficer_408cafa9` (`struct_id`),
   KEY `mddir_structofficer_56e38b98` (`member_id`),
   KEY `mddir_structofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=557 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=585 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -798,7 +798,7 @@ CREATE TABLE `md_directory_zonechair` (
   KEY `mddir_zonechair_2957a812` (`parent_id`),
   KEY `mddir_zonechair_56e38b98` (`member_id`),
   KEY `md_directory_zonechair_dc37fb91` (`assistant_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=371 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=413 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -850,4 +850,4 @@ USE `md_directory`;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-04-01 19:52:46
+-- Dump completed on 2025-06-28 20:37:35
