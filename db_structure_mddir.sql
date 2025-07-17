@@ -355,7 +355,7 @@ CREATE TABLE `md_directory_clubofficer` (
   KEY `mddir_clubofficer_1985cacc` (`club_id`),
   KEY `mddir_clubofficer_56e38b98` (`member_id`),
   KEY `mddir_clubofficer_43edbc56` (`office_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=19344 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=19348 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -774,6 +774,7 @@ CREATE TABLE `md_directory_zone` (
   `region_id` int DEFAULT NULL,
   `name` varchar(100) NOT NULL,
   `struct_id` int NOT NULL,
+  `use_zone_b` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `mddir_zone_9574fce` (`region_id`),
   KEY `mddir_zone_408cafa9` (`struct_id`)
@@ -798,7 +799,7 @@ CREATE TABLE `md_directory_zonechair` (
   KEY `mddir_zonechair_2957a812` (`parent_id`),
   KEY `mddir_zonechair_56e38b98` (`member_id`),
   KEY `md_directory_zonechair_dc37fb91` (`assistant_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=414 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=423 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -850,4 +851,4 @@ USE `md_directory`;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-17 14:30:45
+-- Dump completed on 2025-07-17 15:31:46
